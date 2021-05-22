@@ -4,7 +4,9 @@
 #include <stdint.h>
 
 uint8_t galois_sum(uint8_t v1, uint8_t v2);
+uint8_t galois_sub(uint8_t v1, uint8_t v2);
 uint8_t galois_mult(uint8_t v1, uint8_t v2);
+uint8_t galois_div(uint8_t v1, uint8_t v2);
 uint8_t galois_pow(uint8_t v, uint8_t exp);
 
 #endif
