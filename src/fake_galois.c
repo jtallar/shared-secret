@@ -2,7 +2,7 @@
 
 #include "fake_galois.h"
 
-uint8_t MOD_VAL = UINT8_MAX;
+uint16_t MOD_VAL = 256;
 
 uint8_t galois_sum(uint8_t v1, uint8_t v2) {
     return ((uint16_t) v1 + v2) % MOD_VAL;
