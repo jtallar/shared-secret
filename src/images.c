@@ -38,3 +38,12 @@ void image_destroy(struct image * img) {
         free(img);
     }
 }
+
+void image_print(struct image img) {
+    for (uint8_t i = 0; i < img.size; i++) {
+        printf("\nBlock %d: \n\t", i);
+        for (uint8_t j = 0; j < img.blocks[i].size; j++) {
+            printf("%d ", img.blocks[i].elements[j]);
+        }
+    }
+}
