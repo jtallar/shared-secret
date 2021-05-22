@@ -13,12 +13,11 @@ void distribute(struct image secret, struct image * shadows, uint8_t n_sh);
 
 /* 
     shadows:    image vector with shadow blocks, will be modified
-    n_sh:       number of shadows --> Should be K
+    n_sh:       number of shadows == number of elements per secret block == k
     n_sec_blk:  number of secret blocks
-    n_sh:       number elements per secret block
 
     returns     image pointer with uncovered secret (should be freed later) or NULL if error
 */
-struct image * recover(struct image * shadows, uint8_t n_sh, uint8_t n_sec_blk, uint8_t n_sec_blk_el);
+struct image * recover(struct image * shadows, uint8_t n_sh, uint8_t n_sec_blk);
 
 #endif

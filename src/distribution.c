@@ -48,13 +48,40 @@ void distribute(struct image secret, struct image * shadows, uint8_t n_sh) {
     }
 }
 
-static void interpolate_block(struct block * dest, uint8_t * x_values, uint8_t * y_values, uint8_t k) {
-    dest->size = k;
-    // TODO: Do interpol
+static uint8_t lagrange_term(uint8_t * x_values, uint8_t * y_values, uint8_t k, uint8_t r) {
+    uint8_t sum = 0;
+    // Sum loop
+    for (uint8_t i = 0; i < k - r + 1; i++) {
+        uint8_t prod = 1;
+        // Prod loop
+        for (uint8_t q = 0; q < k - r + 1; q++) {
+            // If i==q, skip iteration
+            if (q == i) continue;
+            uint8_t factor = galois_div(x_values[q], galois_sub(x_values[i], x_values[q]));
+            prod = galois_mult(prod, factor);
+        }
+        sum = galois_sum(sum, galois_mult(y_values[i], prod));
+    }
+    return galois_mult(galois_pow(-1, k - r), sum);
 }
 
-struct image * recover(struct image * shadows, uint8_t n_sh, uint8_t n_sec_blk, uint8_t n_sec_blk_el) {
-    struct image * secret = new_empty_image(n_sec_blk, n_sec_blk_el);
+static void interpolate_block(struct block * dest, uint8_t * x_values, uint8_t * y_values, uint8_t k) {
+    dest->size = k;
+    // Calculate S1
+    dest->elements[0] = lagrange_term(x_values, y_values, k, 1);
+    // Update y_values
+    uint8_t y_prime_values[k];
+    for (uint8_t j = 0; j < k; j++) {
+        y_prime_values[j] = galois_div(galois_sub(y_values[j], dest->elements[0]), x_values[j]);
+    }
+    // Calculate S2,...,Sk
+    for (uint8_t j = 1; j < k; j++) {
+        dest->elements[j] = lagrange_term(x_values, y_prime_values, k, j + 1);
+    }
+}
+
+struct image * recover(struct image * shadows, uint8_t n_sh, uint8_t n_sec_blk) {
+    struct image * secret = new_empty_image(n_sec_blk, n_sh);
     // Iterate over all secret blocks
     for (uint8_t j = 0; j < n_sec_blk; j++) {
         bool seen_x_map[UINT8_MAX] = {false};
@@ -89,7 +116,7 @@ struct image * recover(struct image * shadows, uint8_t n_sh, uint8_t n_sec_blk, 
             x_values[i] = sh_blk.elements[0];
             y_values[i] = f_x;
         }
-        interpolate_block(&secret->blocks[j], x_values, y_values, n_sec_blk_el);
+        interpolate_block(&secret->blocks[j], x_values, y_values, n_sh);
     }
     return secret;
 }
