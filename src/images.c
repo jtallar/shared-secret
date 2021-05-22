@@ -1,4 +1,6 @@
+#include <stdio.h> // printf
 #include <stdlib.h> // malloc
+#include <string.h> // memset
 #include "images.h"
 
 struct image * new_empty_image(uint8_t n_blk, uint8_t n_blk_el) {
