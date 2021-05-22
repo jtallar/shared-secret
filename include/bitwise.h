@@ -7,4 +7,6 @@
 // After exec, eg n=6: el = el7 val el5 ... el0
 void replace_bit(uint8_t * el, uint8_t n, uint8_t val);
 
+uint8_t read_bit(uint8_t el, uint8_t n);
+
 #endif
