@@ -1,4 +1,5 @@
-#include <stdbool.h>
+#include <stdbool.h> // bool
+#include <stdlib.h> // NULL
 
 #include "distribution.h"
 #include "fake_galois.h"
@@ -21,14 +22,14 @@ void distribute(struct image secret, struct image * shadows, uint8_t n_sh) {
     for (uint8_t j = 0; j < secret.size; j++) {
         struct block sec_blk = secret.blocks[j];
 
-        bool values[UINT8_MAX] = {false};
+        bool seen_x_map[UINT8_MAX] = {false};
         // Iterate over all shadows
         for (uint8_t i = 0; i < n_sh; i++) {
             // sh_blk.size should be 4, sh_blk.elements [X, W, V, U]
             struct block sh_blk = shadows[i].blocks[j];
             // TODO: Check if we should modify x inside the shadow, or just save the updated value elsewhere
-            // Add decimal 1 until no repeted values
-            while (values[sh_blk.elements[0]]) {
+            // Add decimal 1 until no repeated x in seen_x_map
+            while (seen_x_map[sh_blk.elements[0]]) {
                 sh_blk.elements[0] = (sh_blk.elements[0] + 1) % UINT8_MAX;
             }
             uint8_t f_x = eval(sec_blk, sh_blk.elements[0]);
@@ -36,8 +37,8 @@ void distribute(struct image secret, struct image * shadows, uint8_t n_sh) {
             // Update W, V, U
             const uint8_t el_dic[] = {3, 3, 2, 2, 2, 1, 1, 1};
             const uint8_t n_dic[] = {0, 1, 0, 1, 2, 0, 1, 2};
-            for (uint8_t mask = 1, ctr = 0; ctr < 8; mask <<= 1, ctr++) {
-                uint8_t bit = (mask & f_x);
+            for (uint8_t ctr = 0; ctr < 8; ctr++) {
+                uint8_t bit = read_bit(f_x, ctr);
                 parity ^= bit;
                 replace_bit(&sh_blk.elements[el_dic[ctr]], n_dic[ctr], bit);
             }
@@ -45,4 +46,50 @@ void distribute(struct image secret, struct image * shadows, uint8_t n_sh) {
             replace_bit(&sh_blk.elements[3], 2, parity);
         }
     }
+}
+
+static void interpolate_block(struct block * dest, uint8_t * x_values, uint8_t * y_values, uint8_t k) {
+    dest->size = k;
+    // TODO: Do interpol
+}
+
+struct image * recover(struct image * shadows, uint8_t n_sh, uint8_t n_sec_blk, uint8_t n_sec_blk_el) {
+    struct image * secret = new_empty_image(n_sec_blk, n_sec_blk_el);
+    // Iterate over all secret blocks
+    for (uint8_t j = 0; j < n_sec_blk; j++) {
+        bool seen_x_map[UINT8_MAX] = {false};
+        uint8_t x_values[n_sh];
+        uint8_t y_values[n_sh];
+        // Iterate over all shadows
+        for (uint8_t i = 0; i < n_sh; i++) {
+            // sh_blk.size should be 4, sh_blk.elements [X, W, V, U]
+            struct block sh_blk = shadows[i].blocks[j];
+            // TODO: Change according to distribute TODO, if modified condition should always be false
+            // Add decimal 1 until no repeated x in seen_x_map
+            while (seen_x_map[sh_blk.elements[0]]) {
+                sh_blk.elements[0] = (sh_blk.elements[0] + 1) % UINT8_MAX;
+            }
+            uint8_t f_x = 0;
+            uint8_t real_parity = 0, expected_parity = 0x04 & sh_blk.elements[3];
+            // Read W, V, U
+            const uint8_t el_dic[] = {3, 3, 2, 2, 2, 1, 1, 1};
+            const uint8_t n_dic[] = {0, 1, 0, 1, 2, 0, 1, 2};
+            for (uint8_t ctr = 0; ctr < 8; ctr++) {
+                uint8_t bit = read_bit(sh_blk.elements[el_dic[ctr]], n_dic[ctr]);
+                real_parity ^= bit;
+                replace_bit(&f_x, ctr, bit);
+            }
+            // TODO: What do we do if wrong parity?
+            // Check parity
+            if (real_parity != expected_parity) {
+                image_destroy(secret);
+                return NULL;
+            }
+            // Save X and f_x values
+            x_values[i] = sh_blk.elements[0];
+            y_values[i] = f_x;
+        }
+        interpolate_block(&secret->blocks[j], x_values, y_values, n_sec_blk_el);
+    }
+    return secret;
 }

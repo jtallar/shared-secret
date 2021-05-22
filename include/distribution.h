@@ -4,8 +4,21 @@
 #include <stdint.h>
 #include "images.h"
 
+/* 
+    secret:     image secret to be hidden inside shadows
+    shadows:    image vector with shadow blocks, will be modified
+    n_sh:       number of shadows
+*/
 void distribute(struct image secret, struct image * shadows, uint8_t n_sh);
 
-struct image * recover(uint8_t n_sec_blk, struct image * shadows, uint8_t n_sh);
+/* 
+    shadows:    image vector with shadow blocks, will be modified
+    n_sh:       number of shadows --> Should be K
+    n_sec_blk:  number of secret blocks
+    n_sh:       number elements per secret block
+
+    returns     image pointer with uncovered secret (should be freed later) or NULL if error
+*/
+struct image * recover(struct image * shadows, uint8_t n_sh, uint8_t n_sec_blk, uint8_t n_sec_blk_el);
 
 #endif
