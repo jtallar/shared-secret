@@ -17,7 +17,7 @@ static uint8_t eval(struct block blk, uint8_t x) {
 }
 
 // shadows WILL BE modified in here
-void distribute(struct image secret, struct image * shadows, uint8_t n_sh) {
+void distribute(struct image secret, struct image ** shadows, uint8_t n_sh) {
     // Iterate over all secret blocks
     for (uint8_t j = 0; j < secret.size; j++) {
         struct block sec_blk = secret.blocks[j];
@@ -26,7 +26,7 @@ void distribute(struct image secret, struct image * shadows, uint8_t n_sh) {
         // Iterate over all shadows
         for (uint8_t i = 0; i < n_sh; i++) {
             // sh_blk.size should be 4, sh_blk.elements [X, W, V, U]
-            struct block sh_blk = shadows[i].blocks[j];
+            struct block sh_blk = shadows[i]->blocks[j];
             // TODO: Check if we should modify x inside the shadow, or just save the updated value elsewhere
             // Add decimal 1 until no repeated x in seen_x_map
             while (seen_x_map[sh_blk.elements[0]]) {
@@ -66,7 +66,6 @@ static uint8_t lagrange_term(uint8_t * x_values, uint8_t * y_values, uint8_t k, 
 }
 
 static void interpolate_block(struct block * dest, uint8_t * x_values, uint8_t * y_values, uint8_t k) {
-    dest->size = k;
     // Calculate S1
     dest->elements[0] = lagrange_term(x_values, y_values, k, 1);
     // Update y_values
@@ -80,7 +79,7 @@ static void interpolate_block(struct block * dest, uint8_t * x_values, uint8_t *
     }
 }
 
-struct image * recover(struct image * shadows, uint8_t n_sh, uint8_t n_sec_blk) {
+struct image * recover(struct image ** shadows, uint8_t n_sh, uint8_t n_sec_blk) {
     struct image * secret = new_empty_image(n_sec_blk, n_sh);
     // Iterate over all secret blocks
     for (uint8_t j = 0; j < n_sec_blk; j++) {
@@ -90,7 +89,7 @@ struct image * recover(struct image * shadows, uint8_t n_sh, uint8_t n_sec_blk) 
         // Iterate over all shadows
         for (uint8_t i = 0; i < n_sh; i++) {
             // sh_blk.size should be 4, sh_blk.elements [X, W, V, U]
-            struct block sh_blk = shadows[i].blocks[j];
+            struct block sh_blk = shadows[i]->blocks[j];
             // TODO: Change according to distribute TODO, if modified condition should always be false
             // Add decimal 1 until no repeated x in seen_x_map
             while (seen_x_map[sh_blk.elements[0]]) {
