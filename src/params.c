@@ -77,14 +77,14 @@ struct stenography parse_params(int argc, char *argv[]) {
     else stderr_and_exit("Wrong action param option.\nShould be d for decode or, r for retrieve.\n");
 
     // retrieve the image name
-    params.image_name = argv[IMAGE_NAME];
+    params.secret_image_path = argv[IMAGE_NAME];
 
     // get the number k
     params.k_number = (int) strtol(argv[K_NUMBER], (char **) NULL, 10);
     if (params.k_number == 0) stderr_and_exit("Wrong format number.\nThird param should be a number.\n");
 
     // retrieve the directory path
-    params.shadow_images_names = get_shadow_images(argv[DIRECTORY], params.k_number, &params.shadow_images);
+    params.shadow_images_paths = get_shadow_images(argv[DIRECTORY], params.k_number, &params.shadow_images_count);
 
     return params;
 }

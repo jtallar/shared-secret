@@ -9,10 +9,10 @@ enum actions {DECODE = 0, RETRIEVE};
 
 struct stenography {
     enum actions action;
-    char * image_name;
+    char * secret_image_path;
     uint8_t k_number;
-    char ** shadow_images_names;
-    uint8_t shadow_images;
+    char ** shadow_images_paths;
+    uint8_t shadow_images_count;
 };
 
 struct stenography parse_params(int argc, char *argv[]);

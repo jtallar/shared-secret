@@ -3,10 +3,18 @@
 #include <string.h> // memset
 #include "images.h"
 
+// TODO implement this 3
+struct image * read_image_from_file(const char * path, uint8_t k) {
+    return NULL;
+}
 
+struct image ** read_shadow_images_from_file(char ** paths, uint8_t k, uint8_t shadow_images_count) {
+    return NULL;
+}
 
-
-
+void write_images(struct image ** shadow_images, uint8_t shadow_images_count, uint8_t overwrite) {
+    return;
+}
 
 
 struct image * new_empty_image(uint8_t n_blk, uint8_t n_blk_el) {

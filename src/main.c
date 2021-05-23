@@ -1,44 +1,37 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <dirent.h> // reading directory
 #include <stdlib.h> // malloc
 #include <string.h> // string
 #include "../include/params.h"
+#include "../include/images.h"
+#include "../include/distribution.h"
+
+#define TRUE 1
+#define FALSE 0
 
 
 int main(int argc, char *argv[]) {
 
     struct stenography params = parse_params(argc, argv);
 
-    for (int i = 0; i < params.shadow_images; ++i) {
-        printf("%s\n", params.shadow_images_names[i]);
-    }
+    struct image ** shadow_images = read_shadow_images_from_file(params.shadow_images_paths, params.k_number, params.shadow_images_count);
+    struct image * secret_image;
+
     switch (params.action) {
-        case DECODE:
-
-            // TODO get shadow images (create the array of structs)
-
-            // TODO secret image should exist
-            // TODO get header and body of one shadow image (create the struct)
-            // TODO distribute
-            // TODO write the shadows
+        case DECODE :
+            secret_image = read_image_from_file(params.secret_image_path, params.k_number);
+            distribute(secret_image, shadow_images, params.shadow_images_count);
+            write_images(shadow_images, params.shadow_images_count, FALSE);
             break;
         case RETRIEVE:
-            // TODO get shadow images (create the array of structs)
-            // TODO get header of one shadow image (create the struct)
-
-            // TODO retrieve
-            // TODO create the secrete image
-
-
-
+            secret_image = recover(shadow_images, params.shadow_images_count, 1); // TODO L / K
+            write_images(&secret_image, 1, TRUE);
             break;
         default:
-            return -1;
+            fprintf(stderr, "How the hell did we got here?\n");
+            exit(1);
     }
-
-    printf("Action: %d, Image: %s, K: %d\n", params.action, params.image_name, params.k_number);
     return 0;
 }
 
