@@ -70,6 +70,7 @@ static uint8_t lagrange_term(uint8_t * x_values, uint8_t * y_values, uint8_t k, 
     return galois_mul(pow(-1, k - r), sum);
 }
 
+// TODO: Fix this, only S1 is OK.
 static void interpolate_block(struct block * dest, uint8_t * x_values, uint8_t * y_values, uint8_t k) {
     // Calculate S1
     dest->elements[0] = lagrange_term(x_values, y_values, k, 1);
