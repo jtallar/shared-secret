@@ -1,9 +1,12 @@
+#include <stdio.h> // fprintf
 #include <stdbool.h> // bool
 #include <stdlib.h> // NULL
 
 #include "distribution.h"
 #include "fake_galois.h"
 #include "bitwise.h"
+
+#define MODULUS     256
 
 // TODO: Apply galois to each operation here
 // F(x) = blk[0] + blk[1] * x + blk[2] * x^2 + ... + blk[size-1] * x^(size-1)
@@ -22,17 +25,18 @@ void distribute(struct image secret, struct image ** shadows, uint8_t n_sh) {
     for (uint8_t j = 0; j < secret.size; j++) {
         struct block sec_blk = secret.blocks[j];
 
-        bool seen_x_map[UINT8_MAX] = {false};
+        bool seen_x_map[MODULUS] = {false};
         // Iterate over all shadows
         for (uint8_t i = 0; i < n_sh; i++) {
             // sh_blk.size should be 4, sh_blk.elements [X, W, V, U]
             struct block sh_blk = shadows[i]->blocks[j];
-            // TODO: Es correcto modificarlo, check que efectivamente cambió el X de la sombra
             // Add decimal 1 until no repeated x in seen_x_map
             while (seen_x_map[sh_blk.elements[0]]) {
-                sh_blk.elements[0] = (sh_blk.elements[0] + 1) % UINT8_MAX;
+                sh_blk.elements[0] = (sh_blk.elements[0] + 1) % MODULUS;
             }
+            seen_x_map[sh_blk.elements[0]] = true;
             uint8_t f_x = eval(sec_blk, sh_blk.elements[0]);
+            // printf("\tPar(%d, %d)", sh_blk.elements[0], f_x);
             uint8_t parity = 0;
             // Update W, V, U
             const uint8_t el_dic[] = {3, 3, 2, 2, 2, 1, 1, 1};
@@ -83,18 +87,19 @@ struct image * recover(struct image ** shadows, uint8_t n_sh, uint8_t n_sec_blk)
     struct image * secret = new_empty_image(n_sec_blk, n_sh);
     // Iterate over all secret blocks
     for (uint8_t j = 0; j < n_sec_blk; j++) {
-        bool seen_x_map[UINT8_MAX] = {false};
+        bool seen_x_map[MODULUS] = {false};
         uint8_t x_values[n_sh];
         uint8_t y_values[n_sh];
         // Iterate over all shadows
         for (uint8_t i = 0; i < n_sh; i++) {
             // sh_blk.size should be 4, sh_blk.elements [X, W, V, U]
             struct block sh_blk = shadows[i]->blocks[j];
-            // TODO: Change according to distribute TODO, if modified condition should always be false
             // Add decimal 1 until no repeated x in seen_x_map
-            while (seen_x_map[sh_blk.elements[0]]) {
-                sh_blk.elements[0] = (sh_blk.elements[0] + 1) % UINT8_MAX;
+            if (seen_x_map[sh_blk.elements[0]]) {
+                fprintf(stderr, "Error in recover: repeated X element. Returning NULL...\n");
+                return NULL;
             }
+            seen_x_map[sh_blk.elements[0]] = true;
             uint8_t f_x = 0;
             uint8_t real_parity = 0, expected_parity = read_bit(sh_blk.elements[3], 2);
             // Read W, V, U
@@ -114,6 +119,7 @@ struct image * recover(struct image ** shadows, uint8_t n_sh, uint8_t n_sec_blk)
             // Save X and f_x values
             x_values[i] = sh_blk.elements[0];
             y_values[i] = f_x;
+            // printf("\tPar(%d, %d)", sh_blk.elements[0], f_x);
         }
         interpolate_block(&secret->blocks[j], x_values, y_values, n_sh);
     }
