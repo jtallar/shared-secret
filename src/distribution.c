@@ -27,7 +27,7 @@ void distribute(struct image secret, struct image ** shadows, uint8_t n_sh) {
         for (uint8_t i = 0; i < n_sh; i++) {
             // sh_blk.size should be 4, sh_blk.elements [X, W, V, U]
             struct block sh_blk = shadows[i]->blocks[j];
-            // TODO: Check if we should modify x inside the shadow, or just save the updated value elsewhere
+            // TODO: Es correcto modificarlo, check que efectivamente cambió el X de la sombra
             // Add decimal 1 until no repeated x in seen_x_map
             while (seen_x_map[sh_blk.elements[0]]) {
                 sh_blk.elements[0] = (sh_blk.elements[0] + 1) % UINT8_MAX;
