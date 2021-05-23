@@ -6,6 +6,10 @@
 #include <string.h> // string
 
 #include "params.h"
+#define ACTION          1
+#define IMAGE_NAME      2
+#define K_NUMBER        3
+#define DIRECTORY       4
 
 void stderr_and_exit(char * message) {
     fprintf(stderr, "%s", message);
@@ -18,19 +22,19 @@ struct stenography parse_params(int argc, char *argv[]) {
     struct stenography params;
 
     // get the action to do
-    if (strcmp(argv[1], "d") == 0) params.action = DECODE;
-    else if (strcmp(argv[1], "r") == 0) params.action = RETRIEVE;
+    if (strcmp(argv[ACTION], "d") == 0) params.action = DECODE;
+    else if (strcmp(argv[ACTION], "r") == 0) params.action = RETRIEVE;
     else stderr_and_exit("Wrong action param option.\n Should be d for decode or, r for retrieve.\n");
 
     // retrieve the image name
-    params.image_name = argv[2];
+    params.image_name = argv[IMAGE_NAME];
 
     // get the number k
-    params.k_number = (int) strtol(argv[3], (char **) NULL, 10);
+    params.k_number = (int) strtol(argv[K_NUMBER], (char **) NULL, 10);
     if (params.k_number == 0) stderr_and_exit("Wrong format number.\n Third param should be a number.\n");
 
     // retrieve the directory path
-    params.directory = argv[4];
+    params.directory = argv[DIRECTORY];
 
     return params;
 }
