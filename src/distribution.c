@@ -67,20 +67,22 @@ static uint8_t lagrange_term(uint8_t * x_values, uint8_t * y_values, uint8_t k, 
         }
         sum = galois_add(sum, galois_mul(y_values[i], prod));
     }
-    return galois_mul(pow(-1, k - r), sum);
+    // TODO: Check si el (-1)^(k-r) va o no
+    return sum;
+    // return galois_mul(pow(-1, k - r), sum);
 }
 
+// TODO: Fix this, only S1 is OK.
 static void interpolate_block(struct block * dest, uint8_t * x_values, uint8_t * y_values, uint8_t k) {
     // Calculate S1
     dest->elements[0] = lagrange_term(x_values, y_values, k, 1);
-    // Update y_values
-    uint8_t y_prime_values[k];
-    for (uint8_t j = 0; j < k; j++) {
-        y_prime_values[j] = galois_div(galois_sub(y_values[j], dest->elements[0]), x_values[j]);
-    }
     // Calculate S2,...,Sk
     for (uint8_t j = 1; j < k; j++) {
-        dest->elements[j] = lagrange_term(x_values, y_prime_values, k, j + 1);
+        // Update Y values
+        for (uint8_t w = 0; w < k; w++) {
+            y_values[w] = galois_div(galois_sub(y_values[w], dest->elements[j - 1]), x_values[w]);
+        }
+        dest->elements[j] = lagrange_term(x_values, y_values, k, j + 1);
     }
 }
 
