@@ -1,8 +1,6 @@
 #include <stdio.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <stdlib.h> // malloc
-#include <string.h> // string
+#include <stdlib.h>
+
 #include "../include/params.h"
 #include "../include/images.h"
 #include "../include/distribution.h"
@@ -21,7 +19,7 @@ int main(int argc, char *argv[]) {
     switch (params.action) {
         case DECODE :
             secret_image = read_image_from_file(params.secret_image_path, params.k_number);
-            distribute(secret_image, shadow_images, params.shadow_images_count);
+            distribute(*secret_image, shadow_images, params.shadow_images_count);
             write_images(shadow_images, params.shadow_images_count, FALSE);
             break;
         case RETRIEVE:
