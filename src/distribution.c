@@ -3,7 +3,7 @@
 #include <stdlib.h> // NULL
 
 #include "distribution.h"
-#include "fake_galois.h"
+#include "galois.h"
 #include "bitwise.h"
 
 #define MODULUS     256
@@ -13,7 +13,7 @@
 static uint8_t eval(struct block blk, uint8_t x) {
     uint8_t val = 0;
     for (uint8_t i = 0; i < blk.size; i++) {
-        val = galois_sum(val, galois_mult(blk.elements[i], galois_pow(x, i)));
+        val = galois_add(val, galois_mul(blk.elements[i], galois_pow(x, i)));
     }
     // galois operations already apply mod g(x)
     return val;
@@ -36,7 +36,7 @@ void distribute(struct image secret, struct image ** shadows, uint8_t n_sh) {
             }
             seen_x_map[sh_blk.elements[0]] = true;
             uint8_t f_x = eval(sec_blk, sh_blk.elements[0]);
-            // printf("\tPar(%d, %d)", sh_blk.elements[0], f_x);
+            printf("\tPar(%d, %d)", sh_blk.elements[0], f_x); // TODO: DELEETE
             uint8_t parity = 0;
             // Update W, V, U
             const uint8_t el_dic[] = {3, 3, 2, 2, 2, 1, 1, 1};
@@ -62,11 +62,11 @@ static uint8_t lagrange_term(uint8_t * x_values, uint8_t * y_values, uint8_t k, 
             // If i==q, skip iteration
             if (q == i) continue;
             uint8_t factor = galois_div(x_values[q], galois_sub(x_values[i], x_values[q]));
-            prod = galois_mult(prod, factor);
+            prod = galois_mul(prod, factor);
         }
-        sum = galois_sum(sum, galois_mult(y_values[i], prod));
+        sum = galois_add(sum, galois_mul(y_values[i], prod));
     }
-    return galois_mult(galois_pow(-1, k - r), sum);
+    return galois_mul(galois_pow(-1, k - r), sum);
 }
 
 static void interpolate_block(struct block * dest, uint8_t * x_values, uint8_t * y_values, uint8_t k) {
@@ -119,7 +119,7 @@ struct image * recover(struct image ** shadows, uint8_t n_sh, uint8_t n_sec_blk)
             // Save X and f_x values
             x_values[i] = sh_blk.elements[0];
             y_values[i] = f_x;
-            // printf("\tPar(%d, %d)", sh_blk.elements[0], f_x);
+            printf("\tPar(%d, %d)", sh_blk.elements[0], f_x); // TODO: DELEETE
         }
         interpolate_block(&secret->blocks[j], x_values, y_values, n_sh);
     }

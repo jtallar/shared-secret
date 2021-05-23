@@ -1,8 +1,8 @@
 /*
- * The following is an implementation of the finite field GF(2^8) as bit vectors of length 8, where the nth bit represents the
+ * The following is an implementation of the finite field GF(2^W) as bit vectors of length 8, where the nth bit represents the
  * coefficient of the nth power of the generator in each element, and the generator satisfies the minimal polynomial
  * x^8 + x^4 + x ^3 + x^2 + 1 in the prime field Z_2, in which addition is equivalent to XOR and multiplication to AND.
- * The elements of GF(2^8) thus represent polynomials of degree < 8 in the generator x. Addition in this field is simply
+ * The elements of GF(2^W) thus represent polynomials of degree < 8 in the generator x. Addition in this field is simply
  * bitwise XOR, but multiplication requires the elimination of powers of x <= 8.
  */
 
@@ -12,8 +12,10 @@
 
 #include "galois_lib.h"
 
+#define W   8
+
 uint8_t galois_init(){
-    return galois_create_mult_tables(8);   /* Returns 0 on success, -1 on failure */
+    return galois_create_mult_tables(W);   /* Returns 0 on success, -1 on failure */
 }
 
 uint8_t galois_add(uint8_t v1, uint8_t v2){
@@ -25,11 +27,11 @@ uint8_t galois_sub(uint8_t v1, uint8_t v2){
 }
 
 uint8_t galois_mul(uint8_t v1, uint8_t v2){
-    return galois_multtable_multiply(v1,v2,8);
+    return galois_multtable_multiply(v1,v2,W);
 }
 
 uint8_t galois_div(uint8_t v1, uint8_t v2){
-    return galois_multtable_divide(v1,v2,8);
+    return galois_multtable_divide(v1,v2,W);
 }
 
 uint8_t galois_pow(uint8_t v, uint8_t e){

@@ -2,10 +2,12 @@
 #include <stdint.h>
 #include "distribution.h"
 #include "images.h"
+#include "galois.h"
 
 #define SHADOW_COUNT    3
 
 int main() {
+    galois_init();
 
     uint8_t secret[2][3] = {{18, 19, 12}, {20, 21, 14}};
     uint8_t shadows[SHADOW_COUNT][2][4] = {
