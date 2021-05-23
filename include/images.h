@@ -13,6 +13,8 @@ struct image {
     uint8_t size;
 };
 
+
+
 struct image * new_empty_image(uint8_t n_blk, uint8_t n_blk_el);
 
 void image_destroy(struct image * img);

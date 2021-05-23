@@ -3,6 +3,12 @@
 #include <string.h> // memset
 #include "images.h"
 
+
+
+
+
+
+
 struct image * new_empty_image(uint8_t n_blk, uint8_t n_blk_el) {
     size_t size = sizeof(struct image);
     struct image * ret = malloc(size);

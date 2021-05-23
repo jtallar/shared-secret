@@ -11,7 +11,8 @@ struct stenography {
     enum actions action;
     char * image_name;
     uint8_t k_number;
-    char * directory;
+    char ** shadow_images_names;
+    uint8_t shadow_images;
 };
 
 struct stenography parse_params(int argc, char *argv[]);

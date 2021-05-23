@@ -73,3 +73,4 @@ users.txt
 # Valgrind output file
 valgrind-output.txt
 /ss
+/files/
