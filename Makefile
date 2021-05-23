@@ -8,7 +8,7 @@ SOURCES = $(wildcard src/*.c)
 OBJECTS = $(SOURCES:.c=.o)
 
 LIBRARY = ./include
-OUTPUT = a.out
+OUTPUT = ss
 
 all: $(OBJECTS)
 	$(GCC) $(GCCFLAGS) -I$(LIBRARY) $(OBJECTS) -o $(OUTPUT) $(LIBRARIES)
