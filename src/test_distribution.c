@@ -47,14 +47,13 @@ int main() {
         image_print(*shadows_img[k]);
     }
 
-    struct image * recovery = recover(shadows_img, 3, 2);
+    struct image * recovery = recover(shadows_img, SHADOW_COUNT, 2);
 
     printf("\nRecovered Secret image\n");
     image_print(*recovery);
 
     image_destroy(secret_img);
     for (uint8_t k = 0; k < SHADOW_COUNT; k++) {
-        printf("\n-----------------------\nShadow %d\n", k);
         image_destroy(shadows_img[k]);
     }
 

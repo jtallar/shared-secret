@@ -96,7 +96,7 @@ struct image * recover(struct image ** shadows, uint8_t n_sh, uint8_t n_sec_blk)
                 sh_blk.elements[0] = (sh_blk.elements[0] + 1) % UINT8_MAX;
             }
             uint8_t f_x = 0;
-            uint8_t real_parity = 0, expected_parity = 0x04 & sh_blk.elements[3];
+            uint8_t real_parity = 0, expected_parity = read_bit(sh_blk.elements[3], 2);
             // Read W, V, U
             const uint8_t el_dic[] = {3, 3, 2, 2, 2, 1, 1, 1};
             const uint8_t n_dic[] = {0, 1, 0, 1, 2, 0, 1, 2};
