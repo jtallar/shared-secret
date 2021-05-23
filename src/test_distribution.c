@@ -35,6 +35,7 @@ int main() {
 
     printf("\nOriginal Secret image\n");
     image_print(*secret_img);
+    printf("\n---------------------\n");
     printf("\nOriginal Shadows\n");
     for (uint8_t k = 0; k < SHADOW_COUNT; k++) {
         printf("\n-----------------------\nShadow %d\n", k);
@@ -42,6 +43,7 @@ int main() {
     }
 
     distribute(*secret_img, shadows_img, SHADOW_COUNT);
+    printf("\n---------------------\n");
 
     printf("\nDistributed Shadows\n");
     for (uint8_t k = 0; k < SHADOW_COUNT; k++) {
@@ -51,8 +53,10 @@ int main() {
 
     struct image * recovery = recover(shadows_img, SHADOW_COUNT, 2);
 
+    printf("\n---------------------\n");
     printf("\nRecovered Secret image\n");
     image_print(*recovery);
+    printf("\n---------------------\n");
 
     image_destroy(secret_img);
     for (uint8_t k = 0; k < SHADOW_COUNT; k++) {

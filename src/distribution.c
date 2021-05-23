@@ -1,6 +1,7 @@
 #include <stdio.h> // fprintf
 #include <stdbool.h> // bool
 #include <stdlib.h> // NULL
+#include <math.h> // pow
 
 #include "distribution.h"
 #include "galois.h"
@@ -66,7 +67,7 @@ static uint8_t lagrange_term(uint8_t * x_values, uint8_t * y_values, uint8_t k, 
         }
         sum = galois_add(sum, galois_mul(y_values[i], prod));
     }
-    return galois_mul(galois_pow(-1, k - r), sum);
+    return galois_mul(pow(-1, k - r), sum);
 }
 
 static void interpolate_block(struct block * dest, uint8_t * x_values, uint8_t * y_values, uint8_t k) {
