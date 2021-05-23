@@ -9,7 +9,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
-#include "../include/galois_lib.h"
+
+#include "galois_lib.h"
 
 uint8_t galois_init(){
     return galois_create_mult_tables(8);   /* Returns 0 on success, -1 on failure */
