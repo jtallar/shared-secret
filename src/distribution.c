@@ -68,14 +68,28 @@ static uint8_t lagrange_term(uint8_t * x_values, uint8_t * y_values, uint8_t k, 
     return sum;
 }
 
+static void swap_xy(uint8_t * x_values, uint8_t * y_values, uint8_t pos1, uint8_t pos2) {
+    uint8_t aux_x = x_values[pos1], aux_y = y_values[pos1];
+    x_values[pos1] = x_values[pos2];
+    y_values[pos1] = y_values[pos2];
+    x_values[pos2] = aux_x;
+    y_values[pos2] = aux_y;
+}
+
 static void interpolate_block(uint8_t ** dest, uint8_t * x_values, uint8_t * y_values, uint8_t k) {
+    // Move x=0 to last place if exists
+    for (uint8_t w = 0; w < k - 1; w++) {
+        if (x_values[w] == 0) {
+            swap_xy(x_values, y_values, w, k - 1);
+            break;
+        }
+    }
     // Calculate S1
     (*dest)[0] = lagrange_term(x_values, y_values, k, 1);
     // Calculate S2,...,Sk
     for (uint8_t j = 1; j < k; j++) {
         // Update Y values
-        for (uint8_t w = 0; w < k; w++) {
-            // TODO: Ver que pasa si x = 0, me da mal
+        for (uint8_t w = 0; w < k - j; w++) {
             y_values[w] = galois_div(galois_sub(y_values[w], (*dest)[j - 1]), x_values[w]);
         }
         (*dest)[j] = lagrange_term(x_values, y_values, k, j + 1);
