@@ -18,6 +18,6 @@ void distribute(struct image secret, struct image ** shadows, uint8_t n_sh);
 
     returns     image pointer with uncovered secret (should be freed later) or NULL if error
 */
-struct image * recover(struct image ** shadows, uint8_t n_sh, uint8_t n_sec_blk);
+struct image * recover(struct image ** shadows, uint8_t n_sh, uint32_t n_sec_blk, const char * filepath);
 
 #endif

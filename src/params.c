@@ -64,6 +64,8 @@ static char ** get_shadow_images(const char * path, uint8_t k, uint8_t * shadow_
         }
 
     }
+    closedir(dir);
+
     return shadow_images_names;
 }
 

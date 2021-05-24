@@ -57,9 +57,10 @@ struct image_extras * read_image_extras(const char * path, uint8_t k) {
 
 struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret, struct image_extras * temp) {
     FILE * full_bmp = fopen(path, "rb");
+    if (full_bmp == NULL) stderr_and_exit("Error while trying to parse bmp file. bmp file does not exist.\n");
 
     // allocate memory for the image struct
-    struct image *pixel_map = malloc(sizeof(struct image));
+    struct image * pixel_map = malloc(sizeof(struct image));
     if (pixel_map == NULL) stderr_and_exit("Not enough heap memory to create an image struct.\n");
 
     // initialize paths
@@ -76,8 +77,8 @@ struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret
     if (pixel_map->elements == NULL) stderr_and_exit("Not enough heap memory to create an elements matrix.\n");
 
     // allocate memory for all the array of elements
-    for (int i = 0; i < pixel_map->total_size; ++i) {
-        pixel_map->elements[i] = malloc(sizeof(uint8_t *) * pixel_map->block_size);
+    for (uint32_t i = 0; i < pixel_map->total_size; ++i) {
+        pixel_map->elements[i] = malloc(sizeof(uint8_t) * pixel_map->block_size);
         if (pixel_map->elements[i] == NULL) stderr_and_exit("Not enough heap memory to create another single elements array.\n");
     }
 
@@ -86,12 +87,12 @@ struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret
 
     // read and copy every element for secret and for shadow
     if (secret)
-        for (int i = 0; i < pixel_map->total_size; ++i)
-            for (int j = 0; j < pixel_map->block_size; ++j)
+        for (uint32_t i = 0; i < pixel_map->total_size; ++i)
+            for (uint8_t j = 0; j < pixel_map->block_size; ++j)
                 fread(&(pixel_map->elements[i][j]), sizeof(uint8_t), 1, full_bmp);
     else
-        for (int h = 0; h < temp->height; ++h)
-            for (int w = 0; w < temp->width/2; ++w)
+        for (uint16_t h = 0; h < temp->height; ++h)
+            for (uint16_t w = 0; w < temp->width/2; ++w)
                 fread(&(pixel_map->elements[w + (temp->width/2) * (h/2)][(h % 2) * 2]), sizeof(uint8_t), 2, full_bmp);
 
     fclose(full_bmp);
@@ -102,13 +103,14 @@ struct image ** read_images_from_file(char ** paths, uint8_t count, uint8_t k, u
     struct image ** images = malloc(sizeof(struct image *) * count);
     if (images == NULL) stderr_and_exit("Not enough heap memory to create an array of images struct.\n");
 
-    for (int i = 0; i < count; ++i) images[i] = read_image_from_file(paths[i], k, secret, temp);
+    for (uint8_t i = 0; i < count; ++i) images[i] = read_image_from_file(paths[i], k, secret, temp);
 
     return images;
 }
 
-static void write_image(struct image * image, uint8_t secret, struct image_extras * temp) {
+void write_image(struct image * image, uint8_t secret, struct image_extras * temp) {
     FILE * new_bmp = fopen(image->filepath, "w+");
+    if (new_bmp == NULL) stderr_and_exit("Error creating file image.\n");
 
     // copy the full image
     fwrite(temp->image_template, sizeof(uint8_t), temp->size, new_bmp);
@@ -118,12 +120,12 @@ static void write_image(struct image * image, uint8_t secret, struct image_extra
 
     // write and copy every element for secret and for shadow
     if (secret)
-        for (int i = 0; i < image->total_size; ++i)
-            for (int j = 0; j < image->block_size; ++j)
+        for (uint32_t i = 0; i < image->total_size; ++i)
+            for (uint8_t j = 0; j < image->block_size; ++j)
                 fwrite(&(image->elements[i][j]), sizeof(uint8_t), 1, new_bmp);
     else
-        for (int h = 0; h < temp->height; ++h)
-            for (int w = 0; w < temp->width/2; ++w)
+        for (uint16_t h = 0; h < temp->height; ++h)
+            for (uint16_t w = 0; w < temp->width/2; ++w)
                 fwrite(&(image->elements[w + (temp->width/2) * (h/2)][(h % 2) * 2]), sizeof(uint8_t), 2, new_bmp);
 
     fclose(new_bmp);
@@ -134,7 +136,7 @@ void write_images(struct image ** images, uint8_t count, uint8_t secret, struct 
 }
 
 void images_destroy(struct image ** images, uint8_t count) {
-    for (int i = 0; i < count; ++i) image_destroy(images[i]);
+    for (uint8_t i = 0; i < count; ++i) image_destroy(images[i]);
     if (count > 0) free(images);
 }
 
@@ -142,7 +144,7 @@ void image_destroy(struct image * img) {
     if (img == NULL) return;
 
     if (img->elements != NULL) {
-        for (int i = 0; i < img->total_size; ++i) {
+        for (uint32_t i = 0; i < img->total_size; ++i) {
             free(img->elements[i]);
             img->elements[i] = NULL;
         }
@@ -171,19 +173,24 @@ void image_extras_destroy(struct image_extras * extras) {
 }
 
 
-struct image * new_empty_image(uint8_t n_blk, uint8_t n_blk_el) {
+struct image * new_empty_image(uint32_t total_block_count, uint8_t block_size, const char * filepath) {
     struct image * ret = malloc(sizeof(struct image));
     if (ret != NULL) {
         memset(ret, 0x00, sizeof(struct image));
 
-        ret->total_size = n_blk;
-        ret->block_size = n_blk_el;
-        ret->elements = malloc(sizeof(uint8_t *) * n_blk);
+        ret->total_size = total_block_count;
+        ret->block_size = block_size;
+        ret->elements = malloc(sizeof(uint8_t *) * ret->total_size);
+
+        // initialize filepath
+        ret->filepath = malloc(sizeof(char) * strlen(filepath) + 1);
+        if (ret->filepath == NULL) stderr_and_exit("Not enough heap memory to save image path.\n");
+        strcpy(ret->filepath, filepath);
 
         if (ret->elements != NULL) {
-            memset(ret->elements, 0x00, sizeof(uint8_t *) * n_blk);
+            memset(ret->elements, 0x00, sizeof(uint8_t *) * ret->total_size);
 
-            for (uint8_t i = 0; i < n_blk; i++) {
+            for (uint32_t i = 0; i < ret->total_size; i++) {
                 ret->elements[i] = malloc(sizeof(uint8_t) * ret->block_size);
                 if (ret->elements[i] == NULL) break;
 
@@ -196,7 +203,7 @@ struct image * new_empty_image(uint8_t n_blk, uint8_t n_blk_el) {
 
 
 void image_print(struct image img) {
-    for (uint8_t i = 0; i < img.total_size; i++) {
+    for (uint32_t i = 0; i < img.total_size; i++) {
         printf("\nBlock %d: \n\t", i);
         for (uint8_t j = 0; j < img.block_size; j++) {
             printf("%d ", img.elements[i][j]);

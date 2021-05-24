@@ -23,7 +23,7 @@ static uint8_t eval(uint8_t * blk, uint8_t blk_size, uint8_t x) {
 // shadows WILL BE modified in here
 void distribute(struct image secret, struct image ** shadows, uint8_t n_sh) {
     // Iterate over all secret blocks
-    for (uint8_t j = 0; j < secret.total_size; j++) {
+    for (uint32_t j = 0; j < secret.total_size; j++) {
         uint8_t * sec_blk = secret.elements[j];
 
         bool seen_x_map[MODULUS] = {false};
@@ -37,7 +37,6 @@ void distribute(struct image secret, struct image ** shadows, uint8_t n_sh) {
             }
             seen_x_map[sh_blk[0]] = true;
             uint8_t f_x = eval(sec_blk, secret.block_size, sh_blk[0]);
-            printf("\tPar(%d, %d)", sh_blk[0], f_x); // TODO: DELEETE
             uint8_t parity = 0;
             // Update W, V, U
             const uint8_t el_dic[] = {3, 3, 2, 2, 2, 1, 1, 1};
@@ -88,10 +87,10 @@ static void interpolate_block(uint8_t ** dest, uint8_t * x_values, uint8_t * y_v
     }
 }
 
-struct image * recover(struct image ** shadows, uint8_t n_sh, uint8_t n_sec_blk) {
-    struct image * secret = new_empty_image(n_sec_blk, n_sh);
+struct image * recover(struct image ** shadows, uint8_t n_sh, uint32_t n_sec_blk, const char * filepath) {
+    struct image * secret = new_empty_image(n_sec_blk, n_sh, filepath);
     // Iterate over all secret blocks
-    for (uint8_t j = 0; j < n_sec_blk; j++) {
+    for (uint32_t j = 0; j < n_sec_blk; j++) {
         bool seen_x_map[MODULUS] = {false};
         uint8_t x_values[n_sh];
         uint8_t y_values[n_sh];
@@ -124,7 +123,6 @@ struct image * recover(struct image ** shadows, uint8_t n_sh, uint8_t n_sec_blk)
             // Save X and f_x values
             x_values[i] = sh_blk[0];
             y_values[i] = f_x;
-            printf("\tPar(%d, %d)", sh_blk[0], f_x); // TODO: DELEETE
         }
         interpolate_block(&secret->elements[j], x_values, y_values, n_sh);
     }

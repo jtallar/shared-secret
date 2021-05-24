@@ -5,7 +5,7 @@
 
 struct image {
     uint8_t ** elements;
-    uint8_t total_size;
+    uint32_t total_size;
     uint8_t block_size;
     char * filepath;
 };
@@ -26,6 +26,8 @@ struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret
 
 struct image ** read_images_from_file(char ** paths, uint8_t count, uint8_t k, uint8_t secret, struct image_extras * temp);
 
+void write_image(struct image * image, uint8_t secret, struct image_extras * temp);
+
 void write_images(struct image ** images, uint8_t count, uint8_t secret, struct image_extras * temp);
 
 void image_extras_destroy(struct image_extras * extras);
@@ -34,8 +36,7 @@ void images_destroy(struct image ** images, uint8_t count);
 
 void image_destroy(struct image * img);
 
-// TODO remove this ?
-struct image * new_empty_image(uint8_t n_blk, uint8_t n_blk_el);
+struct image * new_empty_image(uint32_t total_block_count, uint8_t block_size, const char * filepath);
 
 void image_print(struct image img);
 
