@@ -84,7 +84,7 @@ struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret
     // move to the start of the pixel map
     fseek(full_bmp, temp->offset, SEEK_SET);
 
-    // read and copy every element for secret and fot shadow
+    // read and copy every element for secret and for shadow
     if (secret)
         for (int i = 0; i < pixel_map->total_size; ++i)
             for (int j = 0; j < pixel_map->block_size; ++j)
@@ -94,6 +94,7 @@ struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret
             for (int w = 0; w < temp->width/2; ++w)
                 fread(&(pixel_map->elements[w + (temp->width/2) * (h/2)][(h % 2) * 2]), sizeof(uint8_t), 2, full_bmp);
 
+    fclose(full_bmp);
     return pixel_map;
 }
 
@@ -106,9 +107,30 @@ struct image ** read_images_from_file(char ** paths, uint8_t count, uint8_t k, u
     return images;
 }
 
-// TODO implement this one
-void write_images(struct image ** images, uint8_t count, uint8_t overwrite, struct image_extras * temp) {
-    return;
+static void write_image(struct image * image, uint8_t secret, struct image_extras * temp) {
+    FILE * new_bmp = fopen(image->filepath, "w+");
+
+    // copy the full image
+    fwrite(temp->image_template, sizeof(uint8_t), temp->size, new_bmp);
+
+    // move to the start of the pixel map
+    fseek(new_bmp, temp->offset, SEEK_SET);
+
+    // write and copy every element for secret and for shadow
+    if (secret)
+        for (int i = 0; i < image->total_size; ++i)
+            for (int j = 0; j < image->block_size; ++j)
+                fwrite(&(image->elements[i][j]), sizeof(uint8_t), 1, new_bmp);
+    else
+        for (int h = 0; h < temp->height; ++h)
+            for (int w = 0; w < temp->width/2; ++w)
+                fwrite(&(image->elements[w + (temp->width/2) * (h/2)][(h % 2) * 2]), sizeof(uint8_t), 2, new_bmp);
+
+    fclose(new_bmp);
+}
+
+void write_images(struct image ** images, uint8_t count, uint8_t secret, struct image_extras * temp) {
+    for (int i = 0; i < count; ++i) write_image(images[i], secret, temp);
 }
 
 void images_destroy(struct image ** images, uint8_t count) {
