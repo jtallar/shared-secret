@@ -5,6 +5,8 @@
 #ifndef STENOGRAPHY_SHARED_SECRET_GALOIS_H
 #define STENOGRAPHY_SHARED_SECRET_GALOIS_H
 
+#include <stdint.h>
+
 uint8_t galois_init();
 uint8_t galois_add(uint8_t v1, uint8_t v2);       /* Substraction between two elements of GF(2^8) */
 uint8_t galois_sub(uint8_t v1, uint8_t v2);       /* Add two elements of GF(2^8) */

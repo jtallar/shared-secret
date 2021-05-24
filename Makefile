@@ -1,6 +1,6 @@
 # Compilation flags
 GCC = gcc
-GCCFLAGS = -std=c99 -Wall -g -pedantic
+GCCFLAGS = -std=c99 -D_DEFAULT_SOURCE -Wall -g -pedantic
 LIBRARIES = -lm
 
 # Objects are not the same for each exe

@@ -2,6 +2,7 @@
 // Created by Matias Brula on 23/05/2021.
 //
 #include <stdio.h>
+#include <stdint.h> // uintX_t
 #include <stdlib.h> // strtol
 #include <string.h> // string
 #include <dirent.h> // reading directory
@@ -34,7 +35,7 @@ static char ** get_shadow_images(const char * path, uint8_t k, uint8_t * shadow_
     dir = opendir(path);
     if (dir == NULL) stderr_and_exit("Invalid directory for shadow images.\n");
     while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_REG && is_bmp(entry->d_name, entry->d_namlen))
+        if (entry->d_type == DT_REG && is_bmp(entry->d_name, strlen(entry->d_name)))
             count++;
     }
     closedir(dir);
@@ -53,8 +54,8 @@ static char ** get_shadow_images(const char * path, uint8_t k, uint8_t * shadow_
     uint16_t path_len = strlen(path);
     if (dir == NULL) stderr_and_exit("Invalid directory for shadow images.\n");
     while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_REG && is_bmp(entry->d_name, entry->d_namlen)) {
-            shadow_images_names[count] = malloc(path_len + entry->d_namlen + 1);
+        if (entry->d_type == DT_REG && is_bmp(entry->d_name, strlen(entry->d_name))) {
+            shadow_images_names[count] = malloc(path_len + strlen(entry->d_name) + 1);
             if (shadow_images_names[count] == NULL) stderr_and_exit("Not enough heap memory.\n");
 
             // compose the shadow image filepath
