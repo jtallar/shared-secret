@@ -80,6 +80,7 @@ static void interpolate_block(struct block * dest, uint8_t * x_values, uint8_t *
     for (uint8_t j = 1; j < k; j++) {
         // Update Y values
         for (uint8_t w = 0; w < k; w++) {
+            // TODO: Ver que pasa si x = 0, me da mal
             y_values[w] = galois_div(galois_sub(y_values[w], dest->elements[j - 1]), x_values[w]);
         }
         dest->elements[j] = lagrange_term(x_values, y_values, k, j + 1);
