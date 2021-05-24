@@ -9,8 +9,9 @@ struct block {
 };
 
 struct image {
-    struct block * blocks;
-    uint8_t size;
+    uint8_t ** elements;
+    uint8_t total_size;
+    uint8_t block_size;
     char * filepath;
 };
 
@@ -26,9 +27,9 @@ struct image_extras {
 
 struct image_extras * read_image_extras(const char * path, uint8_t k);
 
-struct image * read_image_from_file(const char * path, uint8_t k);
+struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret, struct image_extras * temp);
 
-struct image ** read_shadow_images_from_file(char ** paths, uint8_t k, uint8_t shadow_images_count);
+struct image ** read_images_from_file(char ** paths, uint8_t count, uint8_t k, uint8_t secret, struct image_extras * temp);
 
 void write_images(struct image ** images, uint8_t count, uint8_t overwrite, struct image_extras * temp);
 
