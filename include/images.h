@@ -24,7 +24,7 @@ struct image_extras {
     char * image_template;
 };
 
-struct image_extras * read_image_extras(const char * path);
+struct image_extras * read_image_extras(const char * path, uint8_t k);
 
 struct image * read_image_from_file(const char * path, uint8_t k);
 

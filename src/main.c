@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 
     struct stenography params = parse_params(argc, argv);
 
-    struct image_extras * extra_data = read_image_extras(params.shadow_images_paths[0]);
+    struct image_extras * extra_data = read_image_extras(params.shadow_images_paths[0], params.k_number);
     struct image ** shadow_images = read_shadow_images_from_file(params.shadow_images_paths, params.k_number, params.shadow_images_count);
     struct image * secret_image;
 

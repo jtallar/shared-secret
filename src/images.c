@@ -9,15 +9,14 @@
 #define HEIGHT_OFFSET           0x0016
 #define BITS_PER_PIXEL_OFFSET   0x001C
 
+static void stderr_and_exit(char * message) {
+    fprintf(stderr, "%s", message);
+    exit(1);
+}
 
-// TODO implement this 4
-
-struct image_extras * read_image_extras(const char * path) {
+struct image_extras * read_image_extras(const char * path, uint8_t k) {
     FILE * full_bmp = fopen(path, "rb");
-    if (full_bmp == NULL) {
-        fprintf(stderr, "Image file does not exist.\n");
-        exit(1);
-    }
+    if (full_bmp == NULL) stderr_and_exit("Image file does not exist.\n");
 
     struct image_extras * extra_data = malloc(sizeof(struct image_extras));
 
@@ -43,17 +42,17 @@ struct image_extras * read_image_extras(const char * path) {
 
     // save the entire image as a template for later
     extra_data->image_template = malloc(extra_data->size);
-    if (extra_data->image_template == NULL) {
-        fprintf(stderr, "Not enough heap memory to save an image.\n");
-        exit(1);
-    }
+    if (extra_data->image_template == NULL) stderr_and_exit("Not enough heap memory to save an image.\n");
     fseek(full_bmp, 0, SEEK_SET);
     fread(&extra_data->image_template, sizeof(uint8_t), extra_data->size, full_bmp);
+
+    // check if the amount of pixels is divisible by k
+    if ((extra_data->height * extra_data->width) % k != 0) stderr_and_exit("The total amount of pixels is not divisible by k.\n");
 
     return extra_data;
 }
 
-
+// TODO implement this 3
 struct image * read_image_from_file(const char * path, uint8_t k) {
     return NULL;
 }
