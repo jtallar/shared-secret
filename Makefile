@@ -17,6 +17,6 @@ all: $(OBJECTS)
 	$(GCC) $(GCCFLAGS) -I$(LIBRARY) -c $< -o $@
 
 clean:
-	rm -rf $(S_OBJECTS) $(OBJECTS)
+	rm -rf $(S_OBJECTS) $(OBJECTS) $(OUTPUT)
 
 .PHONY: all clean
