@@ -70,6 +70,7 @@ static uint8_t lagrange_term(uint8_t * x_values, uint8_t * y_values, uint8_t k, 
     // TODO: Check si el (-1)^(k-r) va o no
     return sum;
     // return galois_mul(pow(-1, k - r), sum);
+    // return galois_mul(galois_pow(galois_sub(0, 1), k - r), sum);
 }
 
 // TODO: Fix this, only S1 is OK.
