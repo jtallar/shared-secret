@@ -21,6 +21,7 @@ struct image_extras * read_image_extras(const char * path, uint8_t k) {
     if (full_bmp == NULL) stderr_and_exit("Image file does not exist.\n");
 
     struct image_extras * extra_data = malloc(sizeof(struct image_extras));
+    if (extra_data == NULL) stderr_and_exit("Extra data could not be allocated.\n");
 
     // save full file size
     fseek(full_bmp, FILE_SIZE_OFFSET, SEEK_SET);
@@ -43,10 +44,10 @@ struct image_extras * read_image_extras(const char * path, uint8_t k) {
     fread(&extra_data->bits_per_pixel, sizeof(uint32_t), 1, full_bmp);
 
     // save the entire image as a template for later
-    extra_data->image_template = malloc(extra_data->size);
+    extra_data->image_template = malloc(sizeof(uint8_t) * extra_data->size);
     if (extra_data->image_template == NULL) stderr_and_exit("Not enough heap memory to save an image.\n");
     fseek(full_bmp, 0, SEEK_SET);
-    fread(&extra_data->image_template, sizeof(uint8_t), extra_data->size, full_bmp);
+    fread(extra_data->image_template, sizeof(uint8_t), extra_data->size, full_bmp);
     fclose(full_bmp);
 
     // check if the amount of pixels is divisible by k
@@ -112,11 +113,8 @@ void write_image(struct image * image, uint8_t secret, struct image_extras * tem
     FILE * new_bmp = fopen(image->filepath, "w+");
     if (new_bmp == NULL) stderr_and_exit("Error creating file image.\n");
 
-    // copy the full image
-    fwrite(temp->image_template, sizeof(uint8_t), temp->size, new_bmp);
-
-    // move to the start of the pixel map
-    fseek(new_bmp, temp->offset, SEEK_SET);
+    // copy the first part of the image
+    fwrite(temp->image_template, sizeof(uint8_t), temp->offset, new_bmp);
 
     // write and copy every element for secret and for shadow
     if (secret)
@@ -127,6 +125,11 @@ void write_image(struct image * image, uint8_t secret, struct image_extras * tem
         for (uint16_t h = 0; h < temp->height; ++h)
             for (uint16_t w = 0; w < temp->width/2; ++w)
                 fwrite(&(image->elements[w + (temp->width/2) * (h/2)][(h % 2) * 2]), sizeof(uint8_t), 2, new_bmp);
+
+    // copy the last part of the image
+    uint32_t new_offset = temp->offset + temp->width * temp->height;
+    if (new_offset < temp->size)
+        fwrite(&(temp->image_template[new_offset]), sizeof(uint8_t), temp->size - new_offset, new_bmp);
 
     fclose(new_bmp);
 }
@@ -168,8 +171,11 @@ void image_extras_destroy(struct image_extras * extras) {
     extras->width = 0;
     extras->height = 0;
     extras->bits_per_pixel = 0;
-    if (extras->image_template == NULL) return;
-    free(extras->image_template);
+    if (extras->image_template != NULL) {
+        free(extras->image_template);
+        extras->image_template = NULL;
+    };
+    free(extras);
 }
 
 

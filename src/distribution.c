@@ -100,8 +100,8 @@ struct image * recover(struct image ** shadows, uint8_t n_sh, uint32_t n_sec_blk
             uint8_t * sh_blk = shadows[i]->elements[j];
             // Add decimal 1 until no repeated x in seen_x_map
             if (seen_x_map[sh_blk[0]]) {
-                fprintf(stderr, "Error in recover: repeated X element. Returning NULL...\n");
-                return NULL;
+                fprintf(stderr, "Error in recover: repeated X element.\n");
+                exit(1);
             }
             seen_x_map[sh_blk[0]] = true;
             uint8_t f_x = 0;
@@ -118,7 +118,8 @@ struct image * recover(struct image ** shadows, uint8_t n_sh, uint32_t n_sec_blk
             // Check parity
             if (real_parity != expected_parity) {
                 image_destroy(secret);
-                return NULL;
+                fprintf(stderr, "Error in recover: wrong parity.\n");
+                exit(1);
             }
             // Save X and f_x values
             x_values[i] = sh_blk[0];
