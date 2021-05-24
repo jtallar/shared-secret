@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "distribution.h"
-#include "images.h"
-#include "galois.h"
+
+#include "../include/distribution.h"
+#include "../include/images.h"
+#include "../include/galois.h"
 
 // #define SHADOW_COUNT    3
-// 
+//
 //int main() {
 //    galois_init();
 //
@@ -19,7 +20,7 @@
 //    struct image * secret_img = new_empty_image(2, 3);
 //    for (uint8_t i = 0; i < 2; i++) {
 //        for (uint8_t j = 0; j < 3; j++) {
-//            secret_img->blocks[i].elements[j] = secret[i][j];
+//            secret_img->elements[i][j] = secret[i][j];
 //        }
 //    }
 //
@@ -28,7 +29,7 @@
 //        shadows_img[k] = new_empty_image(2, 4);
 //        for (uint8_t i = 0; i < 2; i++) {
 //            for (uint8_t j = 0; j < 4; j++) {
-//                shadows_img[k]->blocks[i].elements[j] = shadows[k][i][j];
+//                shadows_img[k]->elements[i][j] = shadows[k][i][j];
 //            }
 //        }
 //    }
@@ -69,36 +70,36 @@
 /* Test 2 */
 
 // #define SHADOW_COUNT    5
-
+//
 // int main() {
 //    galois_init();
-
+//
 //    uint8_t secret[2][4] = {{1, 2, 3, 4}, {5, 6, 7, 8}};
 //    uint8_t shadows[SHADOW_COUNT][2][4] = {
 //         {{2, 54, 67, 5}, {83, 3, 45, 7}},
-//         {{8,9,12,13},{10,11,14,15}}, 
-//         {{20, 15, 42, 54}, {2, 34, 26, 73}}, 
-//         {{120, 14, 4, 52}, {22, 34, 46, 75}}, 
+//         {{8,9,12,13},{10,11,14,15}},
+//         {{20, 15, 42, 54}, {2, 34, 26, 73}},
+//         {{120, 14, 4, 52}, {22, 34, 46, 75}},
 //         {{10, 14, 4, 15}, {2, 63, 56, 77}}
 //    };
-
+//
 //    struct image * secret_img = new_empty_image(2, 4);
 //    for (uint8_t i = 0; i < 2; i++) {
 //        for (uint8_t j = 0; j < 4; j++) {
-//            secret_img->blocks[i].elements[j] = secret[i][j];
+//            secret_img->elements[i][j] = secret[i][j];
 //        }
 //    }
-
+//
 //    struct image * shadows_img[SHADOW_COUNT];
 //    for (uint8_t k = 0; k < SHADOW_COUNT; k++) {
 //        shadows_img[k] = new_empty_image(2, 4);
 //        for (uint8_t i = 0; i < 2; i++) {
 //            for (uint8_t j = 0; j < 4; j++) {
-//                shadows_img[k]->blocks[i].elements[j] = shadows[k][i][j];
+//                shadows_img[k]->elements[i][j] = shadows[k][i][j];
 //            }
 //        }
 //    }
-
+//
 //    printf("\nOriginal Secret image\n");
 //    image_print(*secret_img);
 //    printf("\n---------------------\n");
@@ -107,27 +108,27 @@
 //        printf("\n-----------------------\nShadow %d\n", k);
 //        image_print(*shadows_img[k]);
 //    }
-
+//
 //    distribute(*secret_img, shadows_img, SHADOW_COUNT);
 //    printf("\n---------------------\n");
-
+//
 //    printf("\nDistributed Shadows\n");
 //    for (uint8_t k = 0; k < SHADOW_COUNT; k++) {
 //        printf("\n-----------------------\nShadow %d\n", k);
 //        image_print(*shadows_img[k]);
 //    }
-
+//
 //    struct image * recovery = recover(shadows_img, 4, 2);
-
+//
 //    printf("\n---------------------\n");
 //    printf("\nRecovered Secret image\n");
 //    image_print(*recovery);
 //    printf("\n---------------------\n");
-
+//
 //    image_destroy(secret_img);
 //    for (uint8_t k = 0; k < SHADOW_COUNT; k++) {
 //        image_destroy(shadows_img[k]);
 //    }
-
+//
 //    return 0;
 // }

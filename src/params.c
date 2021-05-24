@@ -6,7 +6,8 @@
 #include <string.h> // string
 #include <dirent.h> // reading directory
 
-#include "params.h"
+#include "../include/params.h"
+
 #define ACTION          1
 #define IMAGE_NAME      2
 #define K_NUMBER        3
@@ -66,25 +67,47 @@ static char ** get_shadow_images(const char * path, uint8_t k, uint8_t * shadow_
     return shadow_images_names;
 }
 
-struct stenography parse_params(int argc, char *argv[]) {
+struct stenography * parse_params(int argc, char *argv[]) {
     if (argc != 5) stderr_and_exit("Wrong amount of params.\nShould be exactly 4: ./ss [d|r] file.bmp [k] directory/\n");
 
-    struct stenography params;
+    struct stenography * params = malloc(sizeof(struct stenography));
+    if (params == NULL) stderr_and_exit("Not enough heap memory to save program params.\n");
 
     // get the action to do
-    if (strcmp(argv[ACTION], "d") == 0) params.action = DECODE;
-    else if (strcmp(argv[ACTION], "r") == 0) params.action = RETRIEVE;
+    if (strcmp(argv[ACTION], "d") == 0) params->action = DECODE;
+    else if (strcmp(argv[ACTION], "r") == 0) params->action = RETRIEVE;
     else stderr_and_exit("Wrong action param option.\nShould be d for decode or, r for retrieve.\n");
 
     // retrieve the image name
-    params.secret_image_path = argv[IMAGE_NAME];
+    params->secret_image_path = malloc(sizeof(char) * strlen(argv[IMAGE_NAME]) + 1);
+    if (params->secret_image_path == NULL) stderr_and_exit("Not enough heap memory to save secret image path.\n");
+    strcpy(params->secret_image_path, argv[IMAGE_NAME]);
 
     // get the number k
-    params.k_number = (int) strtol(argv[K_NUMBER], (char **) NULL, 10);
-    if (params.k_number == 0) stderr_and_exit("Wrong format number.\nThird param should be a number.\n");
+    params->k_number = (int) strtol(argv[K_NUMBER], (char **) NULL, 10);
+    if (params->k_number == 0) stderr_and_exit("Wrong format number.\nThird param should be a number.\n");
 
     // retrieve the directory path
-    params.shadow_images_paths = get_shadow_images(argv[DIRECTORY], params.k_number, &params.shadow_images_count);
+    params->shadow_images_paths = get_shadow_images(argv[DIRECTORY], params->k_number, &params->shadow_images_count);
 
     return params;
+}
+
+void destroy_params(struct stenography * params) {
+    if (params == NULL) return;
+    if (params->secret_image_path != NULL) {
+        free(params->secret_image_path);
+        params->secret_image_path = NULL;
+    }
+    if (params->shadow_images_paths != NULL) {
+        for (int i = 0; i < params->shadow_images_count; ++i) {
+            free(params->shadow_images_paths[i]);
+            params->shadow_images_paths[i] = NULL;
+        }
+        free(params->shadow_images_paths);
+        params->shadow_images_paths = NULL;
+    }
+    params->shadow_images_count = 0;
+    params->k_number = 0;
+    free(params);
 }

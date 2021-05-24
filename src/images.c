@@ -62,8 +62,12 @@ struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret
     struct image *pixel_map = malloc(sizeof(struct image));
     if (pixel_map == NULL) stderr_and_exit("Not enough heap memory to create an image struct.\n");
 
-    // initialize sizes and paths
-    pixel_map->filepath = path;
+    // initialize paths
+    pixel_map->filepath = malloc(sizeof(char) * strlen(path) + 1);
+    if (pixel_map->filepath == NULL) stderr_and_exit("Not enough heap memory to save image path.\n");
+    strcpy(pixel_map->filepath, path);
+
+    // initialize sizes
     pixel_map->block_size = (secret) ? k : SHADOW_BLOCK_SIZE;
     pixel_map->total_size = (temp->height * temp->width) / pixel_map->block_size;
 
@@ -107,50 +111,73 @@ void write_images(struct image ** images, uint8_t count, uint8_t overwrite, stru
     return;
 }
 
+void images_destroy(struct image ** images, uint8_t count) {
+    for (int i = 0; i < count; ++i) image_destroy(images[i]);
+    if (count > 0) free(images);
+}
+
+void image_destroy(struct image * img) {
+    if (img == NULL) return;
+
+    if (img->elements != NULL) {
+        for (int i = 0; i < img->total_size; ++i) {
+            free(img->elements[i]);
+            img->elements[i] = NULL;
+        }
+        free(img->elements);
+        img->elements = NULL;
+    }
+
+    if (img->filepath != NULL) {
+        free(img->filepath);
+        img->filepath = NULL;
+    }
+    img->total_size = 0;
+    img->block_size = 0;
+    free(img);
+}
+
+void image_extras_destroy(struct image_extras * extras) {
+    if (extras == NULL) return;
+    extras->size = 0;
+    extras->offset = 0;
+    extras->width = 0;
+    extras->height = 0;
+    extras->bits_per_pixel = 0;
+    if (extras->image_template == NULL) return;
+    free(extras->image_template);
+}
+
 
 struct image * new_empty_image(uint8_t n_blk, uint8_t n_blk_el) {
-    size_t size = sizeof(struct image);
-    struct image * ret = malloc(size);
+    struct image * ret = malloc(sizeof(struct image));
     if (ret != NULL) {
-        memset(ret, 0x00, size);
-        ret->size = n_blk;
-        size_t size_blocks = sizeof(struct block) * n_blk;
-        ret->blocks = malloc(size_blocks);
-        if (ret->blocks != NULL) {
-            memset(ret->blocks, 0x00, size_blocks);
+        memset(ret, 0x00, sizeof(struct image));
+
+        ret->total_size = n_blk;
+        ret->block_size = n_blk_el;
+        ret->elements = malloc(sizeof(uint8_t *) * n_blk);
+
+        if (ret->elements != NULL) {
+            memset(ret->elements, 0x00, sizeof(uint8_t *) * n_blk);
+
             for (uint8_t i = 0; i < n_blk; i++) {
-                ret->blocks[i].size = n_blk_el;
-                size_t size_elts = sizeof(uint8_t) * n_blk_el;
-                ret->blocks[i].elements = malloc(size_elts);
-                if (ret->blocks[i].elements == NULL) break;
-                memset(ret->blocks[i].elements, 0x00, size_elts);
+                ret->elements[i] = malloc(sizeof(uint8_t) * ret->block_size);
+                if (ret->elements[i] == NULL) break;
+
+                memset(ret->elements[i], 0x00, sizeof(uint8_t) * ret->block_size);
             }
         }
     }
     return ret;
 }
 
-void image_destroy(struct image * img) {
-    if (img != NULL) {
-        if (img->blocks != NULL) {
-            for (uint8_t i = 0; i < img->size; i++) {
-                free(img->blocks[i].elements);
-                img->blocks[i].elements = NULL;
-                img->blocks[i].size = 0;
-            }
-            free(img->blocks);
-            img->blocks = NULL;
-            img->size = 0;
-        }
-        free(img);
-    }
-}
 
 void image_print(struct image img) {
-    for (uint8_t i = 0; i < img.size; i++) {
+    for (uint8_t i = 0; i < img.total_size; i++) {
         printf("\nBlock %d: \n\t", i);
-        for (uint8_t j = 0; j < img.blocks[i].size; j++) {
-            printf("%d ", img.blocks[i].elements[j]);
+        for (uint8_t j = 0; j < img.block_size; j++) {
+            printf("%d ", img.elements[i][j]);
         }
     }
 }

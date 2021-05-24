@@ -15,6 +15,8 @@ struct stenography {
     uint8_t shadow_images_count;
 };
 
-struct stenography parse_params(int argc, char *argv[]);
+struct stenography * parse_params(int argc, char *argv[]);
+
+void destroy_params(struct stenography * params);
 
 #endif //STENOGRAPHY_SHARED_SECRET_PARAMS_H

@@ -3,11 +3,6 @@
 
 #include <stdint.h>
 
-struct block {
-    uint8_t * elements;
-    uint8_t size;
-};
-
 struct image {
     uint8_t ** elements;
     uint8_t total_size;
@@ -33,10 +28,14 @@ struct image ** read_images_from_file(char ** paths, uint8_t count, uint8_t k, u
 
 void write_images(struct image ** images, uint8_t count, uint8_t overwrite, struct image_extras * temp);
 
-// TODO remove this
-struct image * new_empty_image(uint8_t n_blk, uint8_t n_blk_el);
+void image_extras_destroy(struct image_extras * extras);
+
+void images_destroy(struct image ** images, uint8_t count);
 
 void image_destroy(struct image * img);
+
+// TODO remove this ?
+struct image * new_empty_image(uint8_t n_blk, uint8_t n_blk_el);
 
 void image_print(struct image img);
 
