@@ -204,13 +204,3 @@ struct image * new_empty_image(uint32_t total_block_count, uint8_t block_size, c
     }
     return ret;
 }
-
-
-void image_print(struct image img) {
-    for (uint32_t i = 0; i < img.total_size; i++) {
-        printf("\nBlock %d: \n\t", i);
-        for (uint8_t j = 0; j < img.block_size; j++) {
-            printf("%d ", img.elements[i][j]);
-        }
-    }
-}

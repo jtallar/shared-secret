@@ -38,6 +38,4 @@ void image_destroy(struct image * img);
 
 struct image * new_empty_image(uint32_t total_block_count, uint8_t block_size, const char * filepath);
 
-void image_print(struct image img);
-
 #endif
