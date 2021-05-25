@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <math.h>
 
-#include "galois_lib.h"
+#include "../include/galois_lib.h"
 
 #define W   8
 
@@ -47,4 +47,8 @@ void galois_print(uint8_t v){
     while (i--)
         putchar((v >> i & 1) + '0');
     putchar('\n');
+}
+
+void galois_destroy() {
+    galois_free_tables(W);
 }

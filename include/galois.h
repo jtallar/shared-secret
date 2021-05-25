@@ -14,5 +14,6 @@ uint8_t galois_mul(uint8_t v1, uint8_t v2);       /* Multiply two elements of GF
 uint8_t galois_div(uint8_t v1, uint8_t v2);
 uint8_t galois_pow(uint8_t v, uint8_t e);
 void galois_print(uint8_t v);                   /* Print an element of GF(2^8) in binary form */
+void galois_destroy();
 
 #endif //STENOGRAPHY_SHARED_SECRET_GALOIS_H

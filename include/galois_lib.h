@@ -58,6 +58,7 @@ extern int *galois_get_mult_table(int w);
 extern int *galois_get_div_table(int w);
 extern int *galois_get_log_table(int w);
 extern int *galois_get_ilog_table(int w);
+void galois_free_tables(int w);
 
 void galois_region_xor(           char *r1,         /* Region 1 */
                                   char *r2,         /* Region 2 */

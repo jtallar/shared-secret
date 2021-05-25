@@ -800,3 +800,8 @@ int galois_split_w8_multiply(int x, int y)
     }
     return accumulator;
 }
+
+void galois_free_tables(int w) {
+    free(galois_mult_tables[w]);
+    free(galois_div_tables[w]);
+}

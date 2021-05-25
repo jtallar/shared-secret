@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
     images_destroy(shadow_images, params->shadow_images_count);
     image_extras_destroy(extra_data);
     destroy_params(params);
+    galois_destroy();
     return 0;
 }
 
