@@ -89,10 +89,9 @@ struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret
     // read and copy every element for secret and for shadow
     if (secret)
         for (uint32_t i = 0; i < pixel_map->total_size; ++i)
-            for (uint8_t j = 0; j < pixel_map->block_size; ++j)
-                fread(&(pixel_map->elements[i][j]), sizeof(uint8_t), 1, full_bmp);
+            fread(pixel_map->elements[i], sizeof(uint8_t), pixel_map->block_size, full_bmp);
     else
-        for (uint16_t h = 0; h < temp->height; ++h)
+        for (int32_t h = temp->height-1; h >= 0; --h)
             for (uint16_t w = 0; w < temp->width/2; ++w)
                 fread(&(pixel_map->elements[w + (temp->width/2) * (h/2)][(h % 2) * 2]), sizeof(uint8_t), 2, full_bmp);
 
@@ -119,10 +118,9 @@ void write_image(struct image * image, uint8_t secret, struct image_extras * tem
     // write and copy every element for secret and for shadow
     if (secret)
         for (uint32_t i = 0; i < image->total_size; ++i)
-            for (uint8_t j = 0; j < image->block_size; ++j)
-                fwrite(&(image->elements[i][j]), sizeof(uint8_t), 1, new_bmp);
+            fwrite(image->elements[i], sizeof(uint8_t), image->block_size, new_bmp);
     else
-        for (uint16_t h = 0; h < temp->height; ++h)
+        for (int32_t h = temp->height-1; h >= 0; --h)
             for (uint16_t w = 0; w < temp->width/2; ++w)
                 fwrite(&(image->elements[w + (temp->width/2) * (h/2)][(h % 2) * 2]), sizeof(uint8_t), 2, new_bmp);
 
