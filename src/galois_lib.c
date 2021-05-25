@@ -802,6 +802,8 @@ int galois_split_w8_multiply(int x, int y)
 }
 
 void galois_free_tables(int w) {
+    free(galois_log_tables[w]);
+    free(galois_ilog_tables[w] - nwm1[w]);
     free(galois_mult_tables[w]);
     free(galois_div_tables[w]);
 }
