@@ -31,7 +31,7 @@ plank@cs.utk.edu
 #include <stdlib.h>
 #include <string.h>
 
-#include "galois_lib.h"
+#include "./include/galois_lib.h"
 
 #define NONE (10)
 #define TABLE (11)

@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../include/galois.h"
-#include "../include/params.h"
-#include "../include/images.h"
-#include "../include/distribution.h"
+#include "./include/galois.h"
+#include "./include/params.h"
+#include "./include/images.h"
+#include "./include/distribution.h"
 
 #define TRUE 1
 #define FALSE 0

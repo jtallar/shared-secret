@@ -7,7 +7,7 @@ LIBRARIES = -lm
 SOURCES = $(wildcard src/*.c)
 OBJECTS = $(SOURCES:.c=.o)
 
-LIBRARY = ./include
+LIBRARY = ./src/include
 OUTPUT = ss
 
 all: $(OBJECTS)

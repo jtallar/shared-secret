@@ -1,7 +1,7 @@
 #include <stdio.h> // printf
 #include <stdlib.h> // malloc
 #include <string.h> // memset
-#include "images.h"
+#include "./include/images.h"
 
 #define FILE_SIZE_OFFSET        0x0002
 #define DATA_OFFSET_OFFSET      0x000A

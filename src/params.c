@@ -7,7 +7,7 @@
 #include <string.h> // string
 #include <dirent.h> // reading directory
 
-#include "../include/params.h"
+#include "./include/params.h"
 
 #define ACTION          1
 #define IMAGE_NAME      2

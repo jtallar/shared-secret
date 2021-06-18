@@ -5,6 +5,7 @@ Inside the `stenography-shared-secret` folder run:
 ```bash
 make 
 ```
+This will create an executable file called `ss`.
 
 ### Distributing an image
 Let's say we want to distribute the image `Albert.bmp` to all the shadow images in `files/` and setting a `k` of 5:

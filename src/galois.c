@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <math.h>
 
-#include "../include/galois_lib.h"
+#include "./include/galois_lib.h"
 
 #define W   8
 

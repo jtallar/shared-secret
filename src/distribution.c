@@ -3,9 +3,9 @@
 #include <stdlib.h> // NULL
 #include <math.h> // pow
 
-#include "../include/distribution.h"
-#include "../include/galois.h"
-#include "../include/bitwise.h"
+#include "./include/distribution.h"
+#include "./include/galois.h"
+#include "./include/bitwise.h"
 
 #define MODULUS     256
 
