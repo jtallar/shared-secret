@@ -9,6 +9,15 @@
 #define TRUE 1
 #define FALSE 0
 
+void free_resources(struct stenography * params, struct image_extras * extra_data, struct image ** shadow_images, struct image * secret_image) {
+    if (params != NULL) {
+        image_destroy(secret_image);
+        images_destroy(shadow_images, params->shadow_images_count);
+        image_extras_destroy(extra_data);
+    }
+    destroy_params(params);
+    galois_destroy();
+}
 
 int main(int argc, char *argv[]) {
     galois_init();
@@ -28,15 +37,11 @@ int main(int argc, char *argv[]) {
             write_image(secret_image, TRUE, extra_data);
             break;
         default:
-            fprintf(stderr, "How the hell did we got here?\n");
+            fprintf(stderr, "How did we get here?\n");
             exit(1);
     }
 
-    image_destroy(secret_image);
-    images_destroy(shadow_images, params->shadow_images_count);
-    image_extras_destroy(extra_data);
-    destroy_params(params);
-    galois_destroy();
+    free_resources(params, extra_data, shadow_images, secret_image);
     return 0;
 }
 

@@ -137,6 +137,8 @@ void write_images(struct image ** images, uint8_t count, uint8_t secret, struct 
 }
 
 void images_destroy(struct image ** images, uint8_t count) {
+    if (images == NULL) return;
+
     for (uint8_t i = 0; i < count; ++i) image_destroy(images[i]);
     if (count > 0) free(images);
 }
