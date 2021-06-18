@@ -60,6 +60,7 @@ static char ** get_shadow_images(const char * path, uint8_t k, uint8_t * shadow_
     count = 0;
     dir = opendir(path);
     uint16_t path_len = strlen(path);
+    if (path[path_len - 1] == '/') path_len--;
     if (dir == NULL) {
         print_stderr("Invalid directory for shadow images.\n");
         free(shadow_images_names);
@@ -67,7 +68,7 @@ static char ** get_shadow_images(const char * path, uint8_t k, uint8_t * shadow_
     }
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type == DT_REG && is_bmp(entry->d_name, strlen(entry->d_name))) {
-            shadow_images_names[count] = malloc(path_len + strlen(entry->d_name) + 1);
+            shadow_images_names[count] = malloc(path_len + 1 + strlen(entry->d_name) + 1);
             if (shadow_images_names[count] == NULL) {
                 print_stderr("Not enough heap memory.\n");
                 for (int i = 0; i < count; i++) free(shadow_images_names[i]);
@@ -78,7 +79,8 @@ static char ** get_shadow_images(const char * path, uint8_t k, uint8_t * shadow_
 
             // compose the shadow image filepath
             strcpy(shadow_images_names[count], path);
-            strcpy(shadow_images_names[count] + path_len, entry->d_name);
+            strcpy(shadow_images_names[count] + path_len, "/");
+            strcpy(shadow_images_names[count] + path_len + 1, entry->d_name);
             count++;
         }
 
