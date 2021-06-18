@@ -109,6 +109,12 @@ struct stenography * parse_params(int argc, char *argv[]) {
         return NULL;
     }
 
+    if (!is_bmp(argv[IMAGE_NAME], strlen(argv[IMAGE_NAME]))) {
+        print_stderr("Secret is not bmp file.\n");
+        destroy_params(params);
+        return NULL;
+    }
+
     // retrieve the image name
     params->secret_image_path = malloc(sizeof(char) * strlen(argv[IMAGE_NAME]) + 1);
     if (params->secret_image_path == NULL) {
