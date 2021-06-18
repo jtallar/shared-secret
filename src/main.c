@@ -6,6 +6,8 @@
 #include "./include/images.h"
 #include "./include/distribution.h"
 
+#define BITS_PER_PIXEL  8
+
 #define TRUE 1
 #define FALSE 0
 
@@ -20,6 +22,10 @@ static void free_resources(struct stenography * params, struct image_extras * ex
     galois_destroy();
 }
 
+static void print_stderr(const char * message) {
+    fprintf(stderr, "%s", message);
+}
+
 int main(int argc, char *argv[]) {
     galois_init();
     struct stenography * params = parse_params(argc, argv);
@@ -28,10 +34,25 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    struct image_extras * extra_data = read_image_extras(params->shadow_images_paths[0], params->k_number);
+    struct image_extras * extra_data = read_image_extras(params->shadow_images_paths[0], params->k_number, BITS_PER_PIXEL);
     if (extra_data == NULL) {
         free_resources(params, extra_data, NULL, NULL, NULL);
         exit(EXIT_FAILURE);
+    }
+    // Read extra data from other shadows to check for height & width
+    for (int i = 1; i < params->shadow_images_count; i++) {
+        struct image_extras * other_extra_data = read_image_extras(params->shadow_images_paths[i], params->k_number, BITS_PER_PIXEL);
+        if (other_extra_data == NULL) {
+            free_resources(params, extra_data, NULL, NULL, NULL);
+            exit(EXIT_FAILURE);
+        }
+        if (other_extra_data->height != extra_data->height || other_extra_data->width != extra_data->width) {
+            print_stderr("All shadows must have the same height & width.\n");
+            free_resources(params, extra_data, NULL, NULL, NULL);
+            image_extras_destroy(other_extra_data);
+            exit(EXIT_FAILURE);
+        }
+        image_extras_destroy(other_extra_data);
     }
 
     struct image ** shadow_images = read_images_from_file(params->shadow_images_paths, params->shadow_images_count, params->k_number, FALSE, extra_data);
@@ -46,8 +67,13 @@ int main(int argc, char *argv[]) {
 
     switch (params->action) {
         case DECODE :
-            secret_extra = read_image_extras(params->secret_image_path, params->k_number);
+            secret_extra = read_image_extras(params->secret_image_path, params->k_number, BITS_PER_PIXEL);
             if (secret_extra == NULL) {
+                free_resources(params, extra_data, shadow_images, NULL, secret_extra);
+                exit(EXIT_FAILURE);
+            }
+            if (secret_extra->height != extra_data->height || secret_extra->width != extra_data->width) {
+                print_stderr("Secret and shadows must have the same height & width.\n");
                 free_resources(params, extra_data, shadow_images, NULL, secret_extra);
                 exit(EXIT_FAILURE);
             }

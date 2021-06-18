@@ -15,7 +15,7 @@ static void print_stderr(const char * message) {
     fprintf(stderr, "%s", message);
 }
 
-struct image_extras * read_image_extras(const char * path, uint8_t k) {
+struct image_extras * read_image_extras(const char * path, uint8_t k, uint16_t bits_per_pixel) {
     FILE * full_bmp = fopen(path, "rb");
     if (full_bmp == NULL) {
         print_stderr("Image file does not exist.\n");
@@ -48,6 +48,13 @@ struct image_extras * read_image_extras(const char * path, uint8_t k) {
     // save image bits per pixels
     fseek(full_bmp, BITS_PER_PIXEL_OFFSET, SEEK_SET);
     fread(&extra_data->bits_per_pixel, sizeof(uint32_t), 1, full_bmp);
+
+    if (extra_data->bits_per_pixel != bits_per_pixel) {
+        print_stderr("Invalid bmp bits per pixel in "); print_stderr(path); print_stderr(".\n");
+        fclose(full_bmp);
+        image_extras_destroy(extra_data);
+        return NULL;
+    }
 
     // save the entire image as a template for later
     extra_data->image_template = malloc(sizeof(uint8_t) * extra_data->size);
