@@ -90,7 +90,7 @@ static char ** get_shadow_images(const char * path, uint8_t k, uint8_t * shadow_
 
 struct stenography * parse_params(int argc, char *argv[]) {
     if (argc != 5) {
-        print_stderr("Wrong amount of params.\nShould be exactly 4: ./ss [d|r] file.bmp [k] directory/\n");
+        print_stderr("Wrong amount of params.\nShould be exactly 4: ./ss (d|r) file.bmp k directory/\n");
         return NULL;
     }
 

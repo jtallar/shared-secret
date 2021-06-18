@@ -1,11 +1,17 @@
 # Shared Secret with Stenography
 
-### Compiling the files
+## Compiling the files
 Inside the `stenography-shared-secret` folder run:
 ```bash
 make 
 ```
 This will create an executable file called `ss`.
+
+## Executing program
+File must be run using
+```bash
+./ss (d|r) secret-file.bmp k shadows-directory/
+```
 
 ### Distributing an image
 Let's say we want to distribute the image `Albert.bmp` to all the shadow images in `files/` and setting a `k` of 5:
