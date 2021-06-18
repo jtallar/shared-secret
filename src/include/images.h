@@ -26,9 +26,9 @@ struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret
 
 struct image ** read_images_from_file(char ** paths, uint8_t count, uint8_t k, uint8_t secret, struct image_extras * temp);
 
-void write_image(struct image * image, uint8_t secret, struct image_extras * temp);
+int write_image(struct image * image, uint8_t secret, struct image_extras * temp);
 
-void write_images(struct image ** images, uint8_t count, uint8_t secret, struct image_extras * temp);
+int write_images(struct image ** images, uint8_t count, uint8_t secret, struct image_extras * temp);
 
 void image_extras_destroy(struct image_extras * extras);
 

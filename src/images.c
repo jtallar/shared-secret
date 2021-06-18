@@ -11,17 +11,23 @@
 
 #define SHADOW_BLOCK_SIZE       4
 
-static void stderr_and_exit(char * message) {
+static void print_stderr(char * message) {
     fprintf(stderr, "%s", message);
-    exit(1);
 }
 
 struct image_extras * read_image_extras(const char * path, uint8_t k) {
     FILE * full_bmp = fopen(path, "rb");
-    if (full_bmp == NULL) stderr_and_exit("Image file does not exist.\n");
+    if (full_bmp == NULL) {
+        print_stderr("Image file does not exist.\n");
+        return NULL;
+    }
 
     struct image_extras * extra_data = malloc(sizeof(struct image_extras));
-    if (extra_data == NULL) stderr_and_exit("Extra data could not be allocated.\n");
+    if (extra_data == NULL) {
+        print_stderr("Not enough heap memory to save extra data.\n");
+        fclose(full_bmp);
+        return NULL;
+    }
 
     // save full file size
     fseek(full_bmp, FILE_SIZE_OFFSET, SEEK_SET);
@@ -45,28 +51,50 @@ struct image_extras * read_image_extras(const char * path, uint8_t k) {
 
     // save the entire image as a template for later
     extra_data->image_template = malloc(sizeof(uint8_t) * extra_data->size);
-    if (extra_data->image_template == NULL) stderr_and_exit("Not enough heap memory to save an image.\n");
+    if (extra_data->image_template == NULL) {
+        print_stderr("Not enough heap memory to save an image.\n");
+        fclose(full_bmp);
+        image_extras_destroy(extra_data);
+        return NULL;
+    }
     fseek(full_bmp, 0, SEEK_SET);
     fread(extra_data->image_template, sizeof(uint8_t), extra_data->size, full_bmp);
-    fclose(full_bmp);
 
     // check if the amount of pixels is divisible by k
-    if ((extra_data->height * extra_data->width) % k != 0) stderr_and_exit("The total amount of pixels is not divisible by k.\n");
+    if ((extra_data->height * extra_data->width) % k != 0) {
+        print_stderr("The total amount of pixels is not divisible by k.\n");
+        fclose(full_bmp);
+        image_extras_destroy(extra_data);
+        return NULL;
+    }
 
+    fclose(full_bmp);
     return extra_data;
 }
 
 struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret, struct image_extras * temp) {
     FILE * full_bmp = fopen(path, "rb");
-    if (full_bmp == NULL) stderr_and_exit("Error while trying to parse bmp file. bmp file does not exist.\n");
+    if (full_bmp == NULL) {
+        print_stderr("Error while trying to parse bmp file. bmp file does not exist.\n");
+        return NULL;
+    }
 
     // allocate memory for the image struct
-    struct image * pixel_map = malloc(sizeof(struct image));
-    if (pixel_map == NULL) stderr_and_exit("Not enough heap memory to create an image struct.\n");
+    struct image * pixel_map = calloc(1, sizeof(struct image));
+    if (pixel_map == NULL) {
+        print_stderr("Not enough heap memory to create an image struct.\n");
+        fclose(full_bmp);
+        return NULL;
+    }
 
     // initialize paths
     pixel_map->filepath = malloc(sizeof(char) * strlen(path) + 1);
-    if (pixel_map->filepath == NULL) stderr_and_exit("Not enough heap memory to save image path.\n");
+    if (pixel_map->filepath == NULL) {
+        print_stderr("Not enough heap memory to save image path.\n");
+        fclose(full_bmp);
+        image_destroy(pixel_map);
+        return NULL;
+    }
     strcpy(pixel_map->filepath, path);
 
     // initialize sizes
@@ -74,13 +102,23 @@ struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret
     pixel_map->total_size = (temp->height * temp->width) / pixel_map->block_size;
 
     // allocate memory for the matrix of elements
-    pixel_map->elements = malloc(sizeof(uint8_t * ) * pixel_map->total_size);
-    if (pixel_map->elements == NULL) stderr_and_exit("Not enough heap memory to create an elements matrix.\n");
+    pixel_map->elements = calloc(pixel_map->total_size, sizeof(uint8_t * ));
+    if (pixel_map->elements == NULL) {
+        print_stderr("Not enough heap memory to create an elements matrix.\n");
+        fclose(full_bmp);
+        image_destroy(pixel_map);
+        return NULL;
+    }
 
     // allocate memory for all the array of elements
     for (uint32_t i = 0; i < pixel_map->total_size; ++i) {
         pixel_map->elements[i] = malloc(sizeof(uint8_t) * pixel_map->block_size);
-        if (pixel_map->elements[i] == NULL) stderr_and_exit("Not enough heap memory to create another single elements array.\n");
+        if (pixel_map->elements[i] == NULL) {
+            print_stderr("Not enough heap memory to create another single elements array.\n");
+            fclose(full_bmp);
+            image_destroy(pixel_map);
+            return NULL;
+        }
     }
 
     // move to the start of the pixel map
@@ -101,16 +139,28 @@ struct image * read_image_from_file(const char * path, uint8_t k, uint8_t secret
 
 struct image ** read_images_from_file(char ** paths, uint8_t count, uint8_t k, uint8_t secret, struct image_extras * temp) {
     struct image ** images = malloc(sizeof(struct image *) * count);
-    if (images == NULL) stderr_and_exit("Not enough heap memory to create an array of images struct.\n");
+    if (images == NULL) {
+        print_stderr("Not enough heap memory to create an array of images struct.\n");
+        return NULL;
+    }
 
-    for (uint8_t i = 0; i < count; ++i) images[i] = read_image_from_file(paths[i], k, secret, temp);
+    for (uint8_t i = 0; i < count; ++i) {
+        images[i] = read_image_from_file(paths[i], k, secret, temp);
+        if (images[i] == NULL) {
+            images_destroy(images, i + 1);
+            return NULL;
+        }
+    }
 
     return images;
 }
 
-void write_image(struct image * image, uint8_t secret, struct image_extras * temp) {
+int write_image(struct image * image, uint8_t secret, struct image_extras * temp) {
     FILE * new_bmp = fopen(image->filepath, "w+");
-    if (new_bmp == NULL) stderr_and_exit("Error creating file image.\n");
+    if (new_bmp == NULL) {
+        print_stderr("Error creating file image.\n");
+        return -1;
+    }
 
     // copy the first part of the image
     fwrite(temp->image_template, sizeof(uint8_t), temp->offset, new_bmp);
@@ -130,10 +180,14 @@ void write_image(struct image * image, uint8_t secret, struct image_extras * tem
         fwrite(&(temp->image_template[new_offset]), sizeof(uint8_t), temp->size - new_offset, new_bmp);
 
     fclose(new_bmp);
+    return 0;
 }
 
-void write_images(struct image ** images, uint8_t count, uint8_t secret, struct image_extras * temp) {
-    for (int i = 0; i < count; ++i) write_image(images[i], secret, temp);
+int write_images(struct image ** images, uint8_t count, uint8_t secret, struct image_extras * temp) {
+    for (int i = 0; i < count; ++i) {
+        if (write_image(images[i], secret, temp) != 0) return -1;
+    }
+    return 0;
 }
 
 void images_destroy(struct image ** images, uint8_t count) {
@@ -148,7 +202,9 @@ void image_destroy(struct image * img) {
 
     if (img->elements != NULL) {
         for (uint32_t i = 0; i < img->total_size; ++i) {
-            free(img->elements[i]);
+            if (img->elements[i] != NULL) free(img->elements[i]);
+            else break;
+
             img->elements[i] = NULL;
         }
         free(img->elements);
@@ -180,29 +236,44 @@ void image_extras_destroy(struct image_extras * extras) {
 
 
 struct image * new_empty_image(uint32_t total_block_count, uint8_t block_size, const char * filepath) {
-    struct image * ret = malloc(sizeof(struct image));
-    if (ret != NULL) {
-        memset(ret, 0x00, sizeof(struct image));
-
-        ret->total_size = total_block_count;
-        ret->block_size = block_size;
-        ret->elements = malloc(sizeof(uint8_t *) * ret->total_size);
-
-        // initialize filepath
-        ret->filepath = malloc(sizeof(char) * strlen(filepath) + 1);
-        if (ret->filepath == NULL) stderr_and_exit("Not enough heap memory to save image path.\n");
-        strcpy(ret->filepath, filepath);
-
-        if (ret->elements != NULL) {
-            memset(ret->elements, 0x00, sizeof(uint8_t *) * ret->total_size);
-
-            for (uint32_t i = 0; i < ret->total_size; i++) {
-                ret->elements[i] = malloc(sizeof(uint8_t) * ret->block_size);
-                if (ret->elements[i] == NULL) break;
-
-                memset(ret->elements[i], 0x00, sizeof(uint8_t) * ret->block_size);
-            }
-        }
+    struct image * ret = calloc(1, sizeof(struct image));
+    if (ret == NULL) {
+        print_stderr("Not enough heap memory to save image.\n");
+        return NULL;
     }
+
+    memset(ret, 0x00, sizeof(struct image));
+
+    ret->total_size = total_block_count;
+    ret->block_size = block_size;
+    ret->elements = calloc(ret->total_size, sizeof(uint8_t *));
+    if (ret->elements == NULL) {
+        print_stderr("Not enough heap memory to save image elements.\n");
+        image_destroy(ret);
+        return NULL;
+    }
+
+    // initialize filepath
+    ret->filepath = malloc(sizeof(char) * strlen(filepath) + 1);
+    if (ret->filepath == NULL) {
+        print_stderr("Not enough heap memory to save image path.\n");
+        image_destroy(ret);
+        return NULL;
+    }
+    strcpy(ret->filepath, filepath);
+
+    memset(ret->elements, 0x00, sizeof(uint8_t *) * ret->total_size);
+
+    for (uint32_t i = 0; i < ret->total_size; i++) {
+        ret->elements[i] = malloc(sizeof(uint8_t) * ret->block_size);
+        if (ret->elements[i] == NULL) {
+            print_stderr("Not enough heap memory to save image element.\n");
+            image_destroy(ret);
+            return NULL;
+        }
+
+        memset(ret->elements[i], 0x00, sizeof(uint8_t) * ret->block_size);
+    }
+
     return ret;
 }

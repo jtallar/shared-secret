@@ -14,9 +14,8 @@
 #define K_NUMBER        3
 #define DIRECTORY       4
 
-static void stderr_and_exit(char * message) {
+static void print_stderr(char * message) {
     fprintf(stderr, "%s", message);
-    exit(1);
 }
 
 static uint8_t is_bmp(const char * filename, uint16_t length) {
@@ -33,7 +32,10 @@ static char ** get_shadow_images(const char * path, uint8_t k, uint8_t * shadow_
 
     // count the amount of .bmp files
     dir = opendir(path);
-    if (dir == NULL) stderr_and_exit("Invalid directory for shadow images.\n");
+    if (dir == NULL) {
+        print_stderr("Invalid directory for shadow images.\n");
+        return NULL;
+    }
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type == DT_REG && is_bmp(entry->d_name, strlen(entry->d_name)))
             count++;
@@ -41,22 +43,38 @@ static char ** get_shadow_images(const char * path, uint8_t k, uint8_t * shadow_
     closedir(dir);
 
     // check a valid amount of shadow files
-    if (k > count) stderr_and_exit("Number k must be smaller or equal to the mount of shadow images.\n");
+    if (k > count) {
+        print_stderr("Number k must be smaller or equal to the amount of shadow images.\n");
+        return NULL;
+    }
     *shadow_images = count;
 
     // init the array of strings to return
     char ** shadow_images_names = malloc(sizeof(char *) * count);
-    if (shadow_images_names == NULL) stderr_and_exit("Not enough heap memory.\n");
+    if (shadow_images_names == NULL) {
+        print_stderr("Not enough heap memory for shadow images names.\n");
+        return NULL;
+    }
 
     // iterate over the .bmp files and compose their filepath
     count = 0;
     dir = opendir(path);
     uint16_t path_len = strlen(path);
-    if (dir == NULL) stderr_and_exit("Invalid directory for shadow images.\n");
+    if (dir == NULL) {
+        print_stderr("Invalid directory for shadow images.\n");
+        free(shadow_images_names);
+        return NULL;
+    }
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type == DT_REG && is_bmp(entry->d_name, strlen(entry->d_name))) {
             shadow_images_names[count] = malloc(path_len + strlen(entry->d_name) + 1);
-            if (shadow_images_names[count] == NULL) stderr_and_exit("Not enough heap memory.\n");
+            if (shadow_images_names[count] == NULL) {
+                print_stderr("Not enough heap memory.\n");
+                for (int i = 0; i < count; i++) free(shadow_images_names[i]);
+                free(shadow_images_names);
+                closedir(dir);
+                return NULL;
+            }
 
             // compose the shadow image filepath
             strcpy(shadow_images_names[count], path);
@@ -71,27 +89,49 @@ static char ** get_shadow_images(const char * path, uint8_t k, uint8_t * shadow_
 }
 
 struct stenography * parse_params(int argc, char *argv[]) {
-    if (argc != 5) stderr_and_exit("Wrong amount of params.\nShould be exactly 4: ./ss [d|r] file.bmp [k] directory/\n");
+    if (argc != 5) {
+        print_stderr("Wrong amount of params.\nShould be exactly 4: ./ss [d|r] file.bmp [k] directory/\n");
+        return NULL;
+    }
 
-    struct stenography * params = malloc(sizeof(struct stenography));
-    if (params == NULL) stderr_and_exit("Not enough heap memory to save program params.\n");
+    struct stenography * params = calloc(1, sizeof(struct stenography));
+    if (params == NULL) {
+        print_stderr("Not enough heap memory to save program params.\n");
+        return NULL;
+    }
 
     // get the action to do
     if (strcmp(argv[ACTION], "d") == 0) params->action = DECODE;
     else if (strcmp(argv[ACTION], "r") == 0) params->action = RETRIEVE;
-    else stderr_and_exit("Wrong action param option.\nShould be d for decode or, r for retrieve.\n");
+    else {
+        print_stderr("Wrong action param option.\nShould be d for decode or, r for retrieve.\n");
+        destroy_params(params);
+        return NULL;
+    }
 
     // retrieve the image name
     params->secret_image_path = malloc(sizeof(char) * strlen(argv[IMAGE_NAME]) + 1);
-    if (params->secret_image_path == NULL) stderr_and_exit("Not enough heap memory to save secret image path.\n");
+    if (params->secret_image_path == NULL) {
+        print_stderr("Not enough heap memory to save secret image path.\n");
+        destroy_params(params);
+        return NULL;
+    }
     strcpy(params->secret_image_path, argv[IMAGE_NAME]);
 
     // get the number k
     params->k_number = (int) strtol(argv[K_NUMBER], (char **) NULL, 10);
-    if (params->k_number == 0) stderr_and_exit("Wrong format number.\nThird param should be a number.\n");
+    if (params->k_number == 0) {
+        print_stderr("Wrong format number.\nThird param should be a number greater than 0.\n");
+        destroy_params(params);
+        return NULL;
+    }
 
     // retrieve the directory path
     params->shadow_images_paths = get_shadow_images(argv[DIRECTORY], params->k_number, &params->shadow_images_count);
+    if (params->shadow_images_paths == NULL) {
+        destroy_params(params);
+        return NULL;
+    }
 
     return params;
 }

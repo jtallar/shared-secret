@@ -9,6 +9,10 @@
 
 #define MODULUS     256
 
+static void print_stderr(char * message) {
+    fprintf(stderr, "%s", message);
+}
+
 // F(x) = blk[0] + blk[1] * x + blk[2] * x^2 + ... + blk[size-1] * x^(size-1)
 static uint8_t eval(uint8_t * blk, uint8_t blk_size, uint8_t x) {
     uint8_t val = 0;
@@ -98,6 +102,8 @@ static void interpolate_block(uint8_t ** dest, uint8_t * x_values, uint8_t * y_v
 
 struct image * recover(struct image ** shadows, uint8_t n_sh, uint32_t n_sec_blk, const char * filepath) {
     struct image * secret = new_empty_image(n_sec_blk, n_sh, filepath);
+    if (secret == NULL) return NULL;
+
     // Iterate over all secret blocks
     for (uint32_t j = 0; j < n_sec_blk; j++) {
         bool seen_x_map[MODULUS] = {false};
@@ -109,8 +115,9 @@ struct image * recover(struct image ** shadows, uint8_t n_sh, uint32_t n_sec_blk
             uint8_t * sh_blk = shadows[i]->elements[j];
             // Add decimal 1 until no repeated x in seen_x_map
             if (seen_x_map[sh_blk[0]]) {
-                fprintf(stderr, "Error in recover: repeated X element.\n");
-                exit(1);
+                print_stderr("Error in recover: repeated X element.\n");
+                image_destroy(secret);
+                return NULL;
             }
             seen_x_map[sh_blk[0]] = true;
             uint8_t f_x = 0;
@@ -125,9 +132,9 @@ struct image * recover(struct image ** shadows, uint8_t n_sh, uint32_t n_sec_blk
             }
             // Check parity
             if (real_parity != expected_parity) {
+                print_stderr("Error in recover: wrong parity.\n");
                 image_destroy(secret);
-                fprintf(stderr, "Error in recover: wrong parity.\n");
-                exit(1);
+                return NULL;
             }
             // Save X and f_x values
             x_values[i] = sh_blk[0];
