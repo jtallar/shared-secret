@@ -11,7 +11,7 @@
 
 #define SHADOW_BLOCK_SIZE       4
 
-static void print_stderr(char * message) {
+static void print_stderr(const char * message) {
     fprintf(stderr, "%s", message);
 }
 
@@ -62,7 +62,7 @@ struct image_extras * read_image_extras(const char * path, uint8_t k) {
 
     // check if the amount of pixels is divisible by k
     if ((extra_data->height * extra_data->width) % k != 0) {
-        print_stderr("The total amount of pixels is not divisible by k.\n");
+        print_stderr("The total amount of pixels is not divisible by k in "); print_stderr(path); print_stderr(".\n");
         fclose(full_bmp);
         image_extras_destroy(extra_data);
         return NULL;

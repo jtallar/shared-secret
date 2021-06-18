@@ -126,8 +126,8 @@ struct stenography * parse_params(int argc, char *argv[]) {
 
     // get the number k
     params->k_number = (int) strtol(argv[K_NUMBER], (char **) NULL, 10);
-    if (params->k_number == 0) {
-        print_stderr("Wrong format number.\nThird param should be a number greater than 0.\n");
+    if (params->k_number < 2) {
+        print_stderr("Wrong format number.\nThird param should be a number greater or equal than 2.\n");
         destroy_params(params);
         return NULL;
     }
