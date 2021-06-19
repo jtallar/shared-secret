@@ -12,6 +12,7 @@ File must be run using
 ```bash
 ./ss (d|r) secret-file.bmp k shadows-directory/
 ```
+If there's an error when executing, an error message will be shown and the code will return `EXIT_FAILURE`. If successful, nothing is shown and the code will return `EXIT_SUCCESS`.
 
 ### Distributing an image
 Let's say we want to distribute the image `Albert.bmp` to all the shadow images in `files/` and setting a `k` of 5:
